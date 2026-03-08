@@ -40,7 +40,7 @@ public class PostureEvaluator {
         Map<String, List<RuleResult>> resultsByComponent = new LinkedHashMap<>();
 
         // Evaluate each component against all rules (sorted for determinism)
-        List<EnrichedComponent> sortedComponents = graph.enrichedComponents().stream()
+        List<EnrichedComponent> sortedComponents = graph.components().stream()
                 .sorted(Comparator.comparing(ec -> ec.component().bomRef()))
                 .toList();
 
