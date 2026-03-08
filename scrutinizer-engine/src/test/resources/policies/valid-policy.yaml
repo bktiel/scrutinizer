@@ -1,0 +1,36 @@
+apiVersion: scrutinizer/v1
+kind: PosturePolicy
+metadata:
+  name: weighted-posture
+  version: "1.0"
+
+rules:
+  - id: scorecard-baseline
+    description: "Minimum acceptable Scorecard score"
+    field: scorecard.score
+    operator: gte
+    threshold: 4.0
+    severity: WARN
+
+  - id: provenance-preferred
+    description: "Provenance should be present"
+    field: provenance.present
+    operator: eq
+    value: true
+    severity: WARN
+
+  - id: exclude-optional
+    description: "Skip evaluation for optional/dev dependencies"
+    field: scope
+    operator: eq
+    value: optional
+    action: SKIP
+
+scoring:
+  method: weighted_average
+  weights:
+    scorecard.score: 0.6
+    provenance.present: 0.4
+  thresholds:
+    PASS: 6.0
+    WARN: 3.0

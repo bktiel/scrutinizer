@@ -1,0 +1,40 @@
+apiVersion: scrutinizer/v1
+kind: PosturePolicy
+metadata:
+  name: strict-governance
+  version: "1.0"
+
+rules:
+  - id: scorecard-high
+    description: "Require high Scorecard score for all dependencies"
+    field: scorecard.score
+    operator: gte
+    threshold: 7.0
+    severity: FAIL
+
+  - id: provenance-required
+    description: "SLSA provenance must be present for all dependencies"
+    field: provenance.present
+    operator: eq
+    value: true
+    severity: FAIL
+
+  - id: maintained-check
+    description: "Scorecard 'Maintained' check must score above 5"
+    field: scorecard.checks.Maintained
+    operator: gte
+    threshold: 5.0
+    severity: WARN
+
+  - id: vulnerability-check
+    description: "Scorecard 'Vulnerabilities' check must score above 8"
+    field: scorecard.checks.Vulnerabilities
+    operator: gte
+    threshold: 8.0
+    severity: FAIL
+
+scoring:
+  method: worst_case
+  thresholds:
+    PASS: 7.0
+    WARN: 4.0
