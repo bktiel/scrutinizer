@@ -1,8 +1,15 @@
 package com.scrutinizer.cli;
 
 import com.scrutinizer.cli.ScrutinizerCommand.CliArgs;
+import com.scrutinizer.engine.PostureEvaluator;
+import com.scrutinizer.engine.RuleEvaluator;
+import com.scrutinizer.enrichment.EnrichmentPipeline;
+import com.scrutinizer.enrichment.ProvenanceService;
+import com.scrutinizer.enrichment.ScorecardService;
 import com.scrutinizer.graph.GraphAnalyzer;
 import com.scrutinizer.parser.SbomParser;
+import com.scrutinizer.policy.PolicyParser;
+import com.scrutinizer.viz.GraphExportCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -61,7 +68,11 @@ class ScrutinizerCommandTest {
 
         @BeforeEach
         void setUp() {
-            command = new ScrutinizerCommand(new SbomParser(), new GraphAnalyzer());
+            command = new ScrutinizerCommand(new SbomParser(), new GraphAnalyzer(),
+                    new PolicyParser(),
+                    new EnrichmentPipeline(new ScorecardService(), new ProvenanceService()),
+                    new PostureEvaluator(new RuleEvaluator()),
+                    new GraphExportCommand(new SbomParser()));
             stdout = new ByteArrayOutputStream();
             stderr = new ByteArrayOutputStream();
             System.setOut(new PrintStream(stdout));
@@ -111,7 +122,11 @@ class ScrutinizerCommandTest {
 
         @BeforeEach
         void setUp() {
-            command = new ScrutinizerCommand(new SbomParser(), new GraphAnalyzer());
+            command = new ScrutinizerCommand(new SbomParser(), new GraphAnalyzer(),
+                    new PolicyParser(),
+                    new EnrichmentPipeline(new ScorecardService(), new ProvenanceService()),
+                    new PostureEvaluator(new RuleEvaluator()),
+                    new GraphExportCommand(new SbomParser()));
             stdout = new ByteArrayOutputStream();
             System.setOut(new PrintStream(stdout));
         }
@@ -140,7 +155,11 @@ class ScrutinizerCommandTest {
 
         @BeforeEach
         void setUp() {
-            command = new ScrutinizerCommand(new SbomParser(), new GraphAnalyzer());
+            command = new ScrutinizerCommand(new SbomParser(), new GraphAnalyzer(),
+                    new PolicyParser(),
+                    new EnrichmentPipeline(new ScorecardService(), new ProvenanceService()),
+                    new PostureEvaluator(new RuleEvaluator()),
+                    new GraphExportCommand(new SbomParser()));
             stderr = new ByteArrayOutputStream();
             System.setErr(new PrintStream(stderr));
         }

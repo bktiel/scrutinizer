@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,20 +19,20 @@ class GraphExporterTest {
     void setUp() {
         List<Component> components = List.of(
                 new Component("spring-boot", "3.3.0", "spring-boot-ref", "framework",
-                        Optional.of("org.springframework.boot"), Optional.of("pkg:maven/org.springframework.boot/spring-boot@3.3.0"),
-                        Optional.empty(), "required"),
+                        "org.springframework.boot", "pkg:maven/org.springframework.boot/spring-boot@3.3.0",
+                        null, "required"),
                 new Component("jackson-core", "2.15.3", "jackson-core-ref", "library",
-                        Optional.of("com.fasterxml.jackson"), Optional.of("pkg:maven/com.fasterxml.jackson/jackson-core@2.15.3"),
-                        Optional.empty(), "required"),
+                        "com.fasterxml.jackson", "pkg:maven/com.fasterxml.jackson/jackson-core@2.15.3",
+                        null, "required"),
                 new Component("slf4j-api", "2.0.9", "slf4j-api-ref", "library",
-                        Optional.of("org.slf4j"), Optional.empty(),
-                        Optional.empty(), "optional")
+                        "org.slf4j", null,
+                        null, "optional")
         );
         List<DependencyEdge> edges = List.of(
                 new DependencyEdge("spring-boot-ref", "jackson-core-ref"),
                 new DependencyEdge("spring-boot-ref", "slf4j-api-ref")
         );
-        testGraph = new DependencyGraph(components, edges);
+        testGraph = new DependencyGraph(components, edges, null);
     }
 
     @Nested

@@ -11,8 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class RuleEvaluatorTest {
@@ -26,23 +24,23 @@ class RuleEvaluatorTest {
 
     private Component testComponent(String name, String version) {
         return new Component(name, version, name + "-ref", "library",
-                Optional.of("com.test"), Optional.of("pkg:maven/com.test/" + name + "@" + version),
-                Optional.empty(), "required");
+                "com.test", "pkg:maven/com.test/" + name + "@" + version,
+                null, "required");
     }
 
     private EnrichedComponent enrichedWithScorecard(Component comp, double score) {
         ScorecardResult sr = new ScorecardResult(score,
                 Map.of("Code-Review", 8.0, "Maintained", 6.0),
                 "https://github.com/test/repo",
-                Instant.now().toString());
-        return new EnrichedComponent(comp).withScorecard(sr);
+                Instant.now());
+        return EnrichedComponent.unenriched(comp).withScorecard(sr);
     }
 
     private EnrichedComponent enrichedWithProvenance(Component comp, boolean present) {
         ProvenanceResult pr = present
-                ? ProvenanceResult.detected(ProvenanceResult.SlsaLevel.L2, "sigstore")
+                ? ProvenanceResult.detected(ProvenanceResult.SlsaLevel.SLSA_L2, "sigstore")
                 : ProvenanceResult.absent();
-        return new EnrichedComponent(comp).withProvenance(pr);
+        return EnrichedComponent.unenriched(comp).withProvenance(pr);
     }
 
     @Nested
@@ -51,7 +49,7 @@ class RuleEvaluatorTest {
         @Test
         void eqPassesOnMatch() {
             Component comp = testComponent("jackson-core", "2.15.0");
-            EnrichedComponent ec = new EnrichedComponent(comp);
+            EnrichedComponent ec = EnrichedComponent.unenriched(comp);
             Rule rule = new Rule("r1", "Check name", "name", Rule.Operator.EQ, "jackson-core", Rule.Severity.FAIL);
 
             RuleResult result = evaluator.evaluate(rule, ec);
@@ -61,7 +59,7 @@ class RuleEvaluatorTest {
         @Test
         void eqFailsOnMismatch() {
             Component comp = testComponent("jackson-core", "2.15.0");
-            EnrichedComponent ec = new EnrichedComponent(comp);
+            EnrichedComponent ec = EnrichedComponent.unenriched(comp);
             Rule rule = new Rule("r1", "Check name", "name", Rule.Operator.EQ, "jackson-databind", Rule.Severity.FAIL);
 
             RuleResult result = evaluator.evaluate(rule, ec);
@@ -71,7 +69,7 @@ class RuleEvaluatorTest {
         @Test
         void neqPassesOnMismatch() {
             Component comp = testComponent("jackson-core", "2.15.0");
-            EnrichedComponent ec = new EnrichedComponent(comp);
+            EnrichedComponent ec = EnrichedComponent.unenriched(comp);
             Rule rule = new Rule("r1", "Check not banned", "name", Rule.Operator.NEQ, "log4j", Rule.Severity.FAIL);
 
             RuleResult result = evaluator.evaluate(rule, ec);
@@ -81,7 +79,7 @@ class RuleEvaluatorTest {
         @Test
         void eqIsCaseInsensitive() {
             Component comp = testComponent("Jackson-Core", "2.15.0");
-            EnrichedComponent ec = new EnrichedComponent(comp);
+            EnrichedComponent ec = EnrichedComponent.unenriched(comp);
             Rule rule = new Rule("r1", "Match name", "name", Rule.Operator.EQ, "jackson-core", Rule.Severity.WARN);
 
             RuleResult result = evaluator.evaluate(rule, ec);
@@ -143,7 +141,7 @@ class RuleEvaluatorTest {
         @Test
         void inPassesWhenValueInList() {
             Component comp = testComponent("lib", "1.0.0");
-            EnrichedComponent ec = new EnrichedComponent(comp);
+            EnrichedComponent ec = EnrichedComponent.unenriched(comp);
             Rule rule = new Rule("r1", "Allowed types", "type",
                     Rule.Operator.IN, "library,framework,application", Rule.Severity.FAIL);
 
@@ -154,8 +152,8 @@ class RuleEvaluatorTest {
         @Test
         void inFailsWhenValueNotInList() {
             Component comp = new Component("lib", "1.0.0", "lib-ref", "firmware",
-                    Optional.empty(), Optional.empty(), Optional.empty(), "required");
-            EnrichedComponent ec = new EnrichedComponent(comp);
+                    null, null, null, "required");
+            EnrichedComponent ec = EnrichedComponent.unenriched(comp);
             Rule rule = new Rule("r1", "Allowed types", "type",
                     Rule.Operator.IN, "library,framework,application", Rule.Severity.FAIL);
 
@@ -166,7 +164,7 @@ class RuleEvaluatorTest {
         @Test
         void notInPassesWhenValueNotInList() {
             Component comp = testComponent("lib", "1.0.0");
-            EnrichedComponent ec = new EnrichedComponent(comp);
+            EnrichedComponent ec = EnrichedComponent.unenriched(comp);
             Rule rule = new Rule("r1", "Not banned", "name",
                     Rule.Operator.NOT_IN, "log4j,commons-logging", Rule.Severity.FAIL);
 
@@ -181,7 +179,7 @@ class RuleEvaluatorTest {
         @Test
         void existsPassesWhenFieldPresent() {
             Component comp = testComponent("lib", "1.0.0");
-            EnrichedComponent ec = new EnrichedComponent(comp);
+            EnrichedComponent ec = EnrichedComponent.unenriched(comp);
             Rule rule = new Rule("r1", "Has purl", "purl",
                     Rule.Operator.EXISTS, null, Rule.Severity.WARN);
 
@@ -192,8 +190,8 @@ class RuleEvaluatorTest {
         @Test
         void existsFailsWhenFieldAbsent() {
             Component comp = new Component("lib", "1.0.0", "lib-ref", "library",
-                    Optional.empty(), Optional.empty(), Optional.empty(), "required");
-            EnrichedComponent ec = new EnrichedComponent(comp);
+                    null, null, null, "required");
+            EnrichedComponent ec = EnrichedComponent.unenriched(comp);
             Rule rule = new Rule("r1", "Has purl", "purl",
                     Rule.Operator.EXISTS, null, Rule.Severity.WARN);
 
@@ -208,8 +206,8 @@ class RuleEvaluatorTest {
         @Test
         void skipReturnsSkipWhenFieldMatches() {
             Component comp = new Component("lib", "1.0.0", "lib-ref", "library",
-                    Optional.empty(), Optional.empty(), Optional.empty(), "optional");
-            EnrichedComponent ec = new EnrichedComponent(comp);
+                    null, null, null, "optional");
+            EnrichedComponent ec = EnrichedComponent.unenriched(comp);
             Rule rule = new Rule("r1", "Skip optional", "scope",
                     Rule.Operator.EQ, "optional", Rule.Severity.SKIP);
 
@@ -220,7 +218,7 @@ class RuleEvaluatorTest {
         @Test
         void skipReturnsPassWhenFieldDoesNotMatch() {
             Component comp = testComponent("lib", "1.0.0");
-            EnrichedComponent ec = new EnrichedComponent(comp);
+            EnrichedComponent ec = EnrichedComponent.unenriched(comp);
             Rule rule = new Rule("r1", "Skip optional", "scope",
                     Rule.Operator.EQ, "optional", Rule.Severity.SKIP);
 
@@ -235,7 +233,7 @@ class RuleEvaluatorTest {
         @Test
         void missingFieldReturnsInfo() {
             Component comp = testComponent("lib", "1.0.0");
-            EnrichedComponent ec = new EnrichedComponent(comp); // no scorecard
+            EnrichedComponent ec = EnrichedComponent.unenriched(comp); // no scorecard
             Rule rule = new Rule("r1", "Score check", "scorecard.score",
                     Rule.Operator.GTE, "4.0", Rule.Severity.FAIL);
 
@@ -251,7 +249,7 @@ class RuleEvaluatorTest {
         @Test
         void failSeverityMapsTooFailDecision() {
             Component comp = testComponent("lib", "1.0.0");
-            EnrichedComponent ec = new EnrichedComponent(comp);
+            EnrichedComponent ec = EnrichedComponent.unenriched(comp);
             Rule rule = new Rule("r1", "Test", "name", Rule.Operator.EQ, "other", Rule.Severity.FAIL);
 
             assertThat(evaluator.evaluate(rule, ec).decision()).isEqualTo(RuleResult.Decision.FAIL);
@@ -260,7 +258,7 @@ class RuleEvaluatorTest {
         @Test
         void warnSeverityMapsToWarnDecision() {
             Component comp = testComponent("lib", "1.0.0");
-            EnrichedComponent ec = new EnrichedComponent(comp);
+            EnrichedComponent ec = EnrichedComponent.unenriched(comp);
             Rule rule = new Rule("r1", "Test", "name", Rule.Operator.EQ, "other", Rule.Severity.WARN);
 
             assertThat(evaluator.evaluate(rule, ec).decision()).isEqualTo(RuleResult.Decision.WARN);
@@ -269,7 +267,7 @@ class RuleEvaluatorTest {
         @Test
         void infoSeverityMapsToInfoDecision() {
             Component comp = testComponent("lib", "1.0.0");
-            EnrichedComponent ec = new EnrichedComponent(comp);
+            EnrichedComponent ec = EnrichedComponent.unenriched(comp);
             Rule rule = new Rule("r1", "Test", "name", Rule.Operator.EQ, "other", Rule.Severity.INFO);
 
             assertThat(evaluator.evaluate(rule, ec).decision()).isEqualTo(RuleResult.Decision.INFO);
