@@ -1,0 +1,84 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "serialNumber": "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
+  "metadata": {
+    "timestamp": "2025-01-15T10:30:00Z",
+    "component": {
+      "type": "application",
+      "name": "my-npm-app",
+      "version": "1.0.0",
+      "bom-ref": "my-npm-app@1.0.0",
+      "purl": "pkg:npm/my-npm-app@1.0.0"
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "express",
+      "version": "4.18.2",
+      "bom-ref": "express@4.18.2",
+      "purl": "pkg:npm/express@4.18.2",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "body-parser",
+      "version": "1.20.2",
+      "bom-ref": "body-parser@1.20.2",
+      "purl": "pkg:npm/body-parser@1.20.2",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "debug",
+      "version": "2.6.9",
+      "bom-ref": "debug@2.6.9",
+      "purl": "pkg:npm/debug@2.6.9",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "ms",
+      "version": "2.0.0",
+      "bom-ref": "ms@2.0.0",
+      "purl": "pkg:npm/ms@2.0.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "bytes",
+      "version": "3.1.2",
+      "bom-ref": "bytes@3.1.2",
+      "purl": "pkg:npm/bytes@3.1.2",
+      "scope": "required"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "my-npm-app@1.0.0",
+      "dependsOn": ["express@4.18.2"]
+    },
+    {
+      "ref": "express@4.18.2",
+      "dependsOn": ["body-parser@1.20.2", "debug@2.6.9"]
+    },
+    {
+      "ref": "body-parser@1.20.2",
+      "dependsOn": ["bytes@3.1.2", "debug@2.6.9"]
+    },
+    {
+      "ref": "debug@2.6.9",
+      "dependsOn": ["ms@2.0.0"]
+    },
+    {
+      "ref": "ms@2.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "bytes@3.1.2",
+      "dependsOn": []
+    }
+  ]
+}
