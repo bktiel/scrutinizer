@@ -1,0 +1,40 @@
+image: gradle
+
+stages:
+  - build
+  - test
+#   - deploy
+
+build-job:
+  stage: build
+  only:
+    - master
+  before_script:
+    - install yarn
+  script:
+    - ./gradlew build
+    - cd frontend
+    - yarn install && yarn build
+  artifacts:
+    paths:
+      - build
+      - frontend/node_modules
+
+test-job:
+  stage: test
+  only:
+    - master
+  before_script:
+    - install yarn
+  script:
+    - ./gradlew clean test
+    - cd frontend
+    - yarn vitest run
+
+# deploy-job:
+#   stage: deploy
+#   only:
+#     - master
+#   environment: production
+#   script:
+#     - echo "Application successfully deployed."

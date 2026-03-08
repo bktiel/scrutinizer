@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: MEDEVAC
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5440/medevac_dev
+    username: medevac_dev
+    password: medevac
+logging:
+  level:
+    org.springframework.security: trace

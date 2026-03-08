@@ -1,0 +1,22 @@
+version: "3.8"
+services:
+  postgres-db:
+    container_name: postgres
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: medevac_dev
+      POSTGRES_PASSWORD: medevac
+      POSTGRES_DB: medevac_dev
+    ports:
+      - "5440:5432"
+  postgres-test-db:
+    container_name: postgres-test
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: medevac_test
+      POSTGRES_PASSWORD: medevac
+      POSTGRES_DB: medevac_test_dev
+    ports:
+      - "5441:5432"

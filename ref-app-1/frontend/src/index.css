@@ -1,0 +1,53 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+@font-face {
+    font-family: 'GIfont';
+    src: local("GIfont"), url(fonts/GIfont.woff) format("woff");
+}
+
+/*!* Webfont: GI Bold *!*/
+/*@font-face {*/
+/*  font-family: 'GIfont';*/
+/*  src: url('https://www.army.mil/e2/fonts/rv7/gi/GI-750.woff') format('woff'), !* Modern Browsers *!*/
+/*  url('https://www.army.mil/e2/fonts/rv7/gi/GI-750.ttf') format('truetype'), !* Safari, Android, iOS *!*/
+/*  url('https://www.army.mil/e2/fonts/rv7/gi/GI-750.woff2') format('woff2');*/
+/*  font-style: normal;*/
+/*  font-weight: 700;*/
+/*  text-rendering: optimizeLegibility;*/
+/*}*/
+
+/*!* Webfont: GI Bold Italic *!*/
+/*@font-face {*/
+/*  font-family: 'GIfont';*/
+/*  src: url('https://www.army.mil/e2/fonts/rv7/gi/GI-750Italic.woff') format('woff'), !* Modern Browsers *!*/
+/*  url('https://www.army.mil/e2/fonts/rv7/gi/GI-750Italic.ttf') format('truetype'), !* Safari, Android, iOS *!*/
+/*  url('https://www.army.mil/e2/fonts/rv7/gi/GI-750Italic.woff2') format('woff2');*/
+/*  font-style: italic;*/
+/*  font-weight: 700;*/
+/*  text-rendering: optimizeLegibility;*/
+/*}*/
+
+/*!* Webfont: GI Regular *!*/
+/*@font-face {*/
+/*  font-family: 'GIfont';*/
+/*  src: url('https://www.army.mil/e2/fonts/rv7/gi/GI-530.woff') format('woff'), !* Modern Browsers *!*/
+/*  url('https://www.army.mil/e2/fonts/rv7/gi/GI-530.ttf') format('truetype'), !* Safari, Android, iOS *!*/
+/*  url('https://www.army.mil/e2/fonts/rv7/gi/GI-530.woff2') format('woff2');*/
+/*  font-style: normal;*/
+/*  font-weight: 600;*/
+/*  text-rendering: optimizeLegibility;*/
+/*}*/
+
+/*!* Webfont: GI Italic *!*/
+/*@font-face {*/
+/*  font-family: 'GIfont';*/
+/*  src: url('https://www.army.mil/e2/fonts/rv7/gi/GI-530Italic.woff') format('woff'), !* Modern Browsers *!*/
+/*  url('https://www.army.mil/e2/fonts/rv7/gi/GI-530Italic.ttf') format('truetype'), !* Safari, Android, iOS *!*/
+/*  url('https://www.army.mil/e2/fonts/rv7/gi/GI-530Italic.woff2') format('woff2');*/
+/*  font-style: italic;*/
+/*  font-weight: 600;*/
+/*  text-rendering: optimizeLegibility;*/
+/*}*/

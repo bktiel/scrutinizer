@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5441/medevac_test_dev
+    username: medevac_test
+    password: medevac
+#  jpa:
+#    hibernate:
+#      ddl-auto: create-drop
+logging:
+  level:
+    org.springframework.security: trace
