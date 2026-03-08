@@ -1,0 +1,776 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "serialNumber": "urn:uuid:6fa9d710-a242-4332-b610-8ea84703ab4f",
+  "metadata": {
+    "timestamp": "2026-03-08T13:15:03Z",
+    "component": {
+      "type": "application",
+      "group": "com.example",
+      "name": "nine-line-medevac",
+      "version": "0.0.1-SNAPSHOT",
+      "bom-ref": "com.example:nine-line-medevac@0.0.1-SNAPSHOT",
+      "purl": "pkg:maven/com.example/nine-line-medevac@0.0.1-SNAPSHOT"
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-starter-data-jpa",
+      "version": "3.3.0",
+      "bom-ref": "org.springframework.boot:spring-boot-starter-data-jpa@3.3.0",
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-starter-data-jpa@3.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-starter-web",
+      "version": "3.3.0",
+      "bom-ref": "org.springframework.boot:spring-boot-starter-web@3.3.0",
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-starter-web@3.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-starter-validation",
+      "version": "3.3.0",
+      "bom-ref": "org.springframework.boot:spring-boot-starter-validation@3.3.0",
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-starter-validation@3.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-starter-security",
+      "version": "3.3.0",
+      "bom-ref": "org.springframework.boot:spring-boot-starter-security@3.3.0",
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-starter-security@3.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-devtools",
+      "version": "3.3.0",
+      "bom-ref": "org.springframework.boot:spring-boot-devtools@3.3.0",
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-devtools@3.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.flywaydb",
+      "name": "flyway-core",
+      "version": "9.22.1",
+      "bom-ref": "org.flywaydb:flyway-core@9.22.1",
+      "purl": "pkg:maven/org.flywaydb/flyway-core@9.22.1",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.flywaydb",
+      "name": "flyway-database-postgresql",
+      "version": "9.22.1",
+      "bom-ref": "org.flywaydb:flyway-database-postgresql@9.22.1",
+      "purl": "pkg:maven/org.flywaydb/flyway-database-postgresql@9.22.1",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.postgresql",
+      "name": "postgresql",
+      "version": "42.7.3",
+      "bom-ref": "org.postgresql:postgresql@42.7.3",
+      "purl": "pkg:maven/org.postgresql/postgresql@42.7.3",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.projectlombok",
+      "name": "lombok",
+      "version": "1.18.32",
+      "bom-ref": "org.projectlombok:lombok@1.18.32",
+      "purl": "pkg:maven/org.projectlombok/lombok@1.18.32",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-starter",
+      "version": "3.3.0",
+      "bom-ref": "org.springframework.boot:spring-boot-starter@3.3.0",
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-starter@3.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.boot",
+      "name": "spring-boot",
+      "version": "3.3.0",
+      "bom-ref": "org.springframework.boot:spring-boot@3.3.0",
+      "purl": "pkg:maven/org.springframework.boot/spring-boot@3.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-autoconfigure",
+      "version": "3.3.0",
+      "bom-ref": "org.springframework.boot:spring-boot-autoconfigure@3.3.0",
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-autoconfigure@3.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-starter-logging",
+      "version": "3.3.0",
+      "bom-ref": "org.springframework.boot:spring-boot-starter-logging@3.3.0",
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-starter-logging@3.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-starter-json",
+      "version": "3.3.0",
+      "bom-ref": "org.springframework.boot:spring-boot-starter-json@3.3.0",
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-starter-json@3.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-starter-tomcat",
+      "version": "3.3.0",
+      "bom-ref": "org.springframework.boot:spring-boot-starter-tomcat@3.3.0",
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-starter-tomcat@3.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-starter-jdbc",
+      "version": "3.3.0",
+      "bom-ref": "org.springframework.boot:spring-boot-starter-jdbc@3.3.0",
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-starter-jdbc@3.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-starter-aop",
+      "version": "3.3.0",
+      "bom-ref": "org.springframework.boot:spring-boot-starter-aop@3.3.0",
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-starter-aop@3.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework",
+      "name": "spring-core",
+      "version": "6.1.8",
+      "bom-ref": "org.springframework:spring-core@6.1.8",
+      "purl": "pkg:maven/org.springframework/spring-core@6.1.8",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework",
+      "name": "spring-context",
+      "version": "6.1.8",
+      "bom-ref": "org.springframework:spring-context@6.1.8",
+      "purl": "pkg:maven/org.springframework/spring-context@6.1.8",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework",
+      "name": "spring-beans",
+      "version": "6.1.8",
+      "bom-ref": "org.springframework:spring-beans@6.1.8",
+      "purl": "pkg:maven/org.springframework/spring-beans@6.1.8",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework",
+      "name": "spring-web",
+      "version": "6.1.8",
+      "bom-ref": "org.springframework:spring-web@6.1.8",
+      "purl": "pkg:maven/org.springframework/spring-web@6.1.8",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework",
+      "name": "spring-webmvc",
+      "version": "6.1.8",
+      "bom-ref": "org.springframework:spring-webmvc@6.1.8",
+      "purl": "pkg:maven/org.springframework/spring-webmvc@6.1.8",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework",
+      "name": "spring-aop",
+      "version": "6.1.8",
+      "bom-ref": "org.springframework:spring-aop@6.1.8",
+      "purl": "pkg:maven/org.springframework/spring-aop@6.1.8",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework",
+      "name": "spring-tx",
+      "version": "6.1.8",
+      "bom-ref": "org.springframework:spring-tx@6.1.8",
+      "purl": "pkg:maven/org.springframework/spring-tx@6.1.8",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework",
+      "name": "spring-jdbc",
+      "version": "6.1.8",
+      "bom-ref": "org.springframework:spring-jdbc@6.1.8",
+      "purl": "pkg:maven/org.springframework/spring-jdbc@6.1.8",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework",
+      "name": "spring-orm",
+      "version": "6.1.8",
+      "bom-ref": "org.springframework:spring-orm@6.1.8",
+      "purl": "pkg:maven/org.springframework/spring-orm@6.1.8",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework",
+      "name": "spring-expression",
+      "version": "6.1.8",
+      "bom-ref": "org.springframework:spring-expression@6.1.8",
+      "purl": "pkg:maven/org.springframework/spring-expression@6.1.8",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.data",
+      "name": "spring-data-jpa",
+      "version": "3.3.0",
+      "bom-ref": "org.springframework.data:spring-data-jpa@3.3.0",
+      "purl": "pkg:maven/org.springframework.data/spring-data-jpa@3.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.data",
+      "name": "spring-data-commons",
+      "version": "3.3.0",
+      "bom-ref": "org.springframework.data:spring-data-commons@3.3.0",
+      "purl": "pkg:maven/org.springframework.data/spring-data-commons@3.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.security",
+      "name": "spring-security-core",
+      "version": "6.3.0",
+      "bom-ref": "org.springframework.security:spring-security-core@6.3.0",
+      "purl": "pkg:maven/org.springframework.security/spring-security-core@6.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.security",
+      "name": "spring-security-config",
+      "version": "6.3.0",
+      "bom-ref": "org.springframework.security:spring-security-config@6.3.0",
+      "purl": "pkg:maven/org.springframework.security/spring-security-config@6.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.security",
+      "name": "spring-security-web",
+      "version": "6.3.0",
+      "bom-ref": "org.springframework.security:spring-security-web@6.3.0",
+      "purl": "pkg:maven/org.springframework.security/spring-security-web@6.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.springframework.security",
+      "name": "spring-security-crypto",
+      "version": "6.3.0",
+      "bom-ref": "org.springframework.security:spring-security-crypto@6.3.0",
+      "purl": "pkg:maven/org.springframework.security/spring-security-crypto@6.3.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.hibernate.orm",
+      "name": "hibernate-core",
+      "version": "6.5.2.Final",
+      "bom-ref": "org.hibernate.orm:hibernate-core@6.5.2.Final",
+      "purl": "pkg:maven/org.hibernate.orm/hibernate-core@6.5.2.Final",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "jakarta.persistence",
+      "name": "jakarta.persistence-api",
+      "version": "3.1.0",
+      "bom-ref": "jakarta.persistence:jakarta.persistence-api@3.1.0",
+      "purl": "pkg:maven/jakarta.persistence/jakarta.persistence-api@3.1.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "jakarta.transaction",
+      "name": "jakarta.transaction-api",
+      "version": "2.0.1",
+      "bom-ref": "jakarta.transaction:jakarta.transaction-api@2.0.1",
+      "purl": "pkg:maven/jakarta.transaction/jakarta.transaction-api@2.0.1",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "jakarta.validation",
+      "name": "jakarta.validation-api",
+      "version": "3.0.2",
+      "bom-ref": "jakarta.validation:jakarta.validation-api@3.0.2",
+      "purl": "pkg:maven/jakarta.validation/jakarta.validation-api@3.0.2",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.hibernate.validator",
+      "name": "hibernate-validator",
+      "version": "8.0.1.Final",
+      "bom-ref": "org.hibernate.validator:hibernate-validator@8.0.1.Final",
+      "purl": "pkg:maven/org.hibernate.validator/hibernate-validator@8.0.1.Final",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "com.fasterxml.jackson.core",
+      "name": "jackson-databind",
+      "version": "2.17.1",
+      "bom-ref": "com.fasterxml.jackson.core:jackson-databind@2.17.1",
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.17.1",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "com.fasterxml.jackson.core",
+      "name": "jackson-core",
+      "version": "2.17.1",
+      "bom-ref": "com.fasterxml.jackson.core:jackson-core@2.17.1",
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.17.1",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "com.fasterxml.jackson.core",
+      "name": "jackson-annotations",
+      "version": "2.17.1",
+      "bom-ref": "com.fasterxml.jackson.core:jackson-annotations@2.17.1",
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.17.1",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "com.fasterxml.jackson.datatype",
+      "name": "jackson-datatype-jdk8",
+      "version": "2.17.1",
+      "bom-ref": "com.fasterxml.jackson.datatype:jackson-datatype-jdk8@2.17.1",
+      "purl": "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jdk8@2.17.1",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "com.fasterxml.jackson.datatype",
+      "name": "jackson-datatype-jsr310",
+      "version": "2.17.1",
+      "bom-ref": "com.fasterxml.jackson.datatype:jackson-datatype-jsr310@2.17.1",
+      "purl": "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jsr310@2.17.1",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.apache.tomcat.embed",
+      "name": "tomcat-embed-core",
+      "version": "10.1.24",
+      "bom-ref": "org.apache.tomcat.embed:tomcat-embed-core@10.1.24",
+      "purl": "pkg:maven/org.apache.tomcat.embed/tomcat-embed-core@10.1.24",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.apache.tomcat.embed",
+      "name": "tomcat-embed-websocket",
+      "version": "10.1.24",
+      "bom-ref": "org.apache.tomcat.embed:tomcat-embed-websocket@10.1.24",
+      "purl": "pkg:maven/org.apache.tomcat.embed/tomcat-embed-websocket@10.1.24",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.apache.logging.log4j",
+      "name": "log4j-to-slf4j",
+      "version": "2.23.1",
+      "bom-ref": "org.apache.logging.log4j:log4j-to-slf4j@2.23.1",
+      "purl": "pkg:maven/org.apache.logging.log4j/log4j-to-slf4j@2.23.1",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "ch.qos.logback",
+      "name": "logback-classic",
+      "version": "1.5.6",
+      "bom-ref": "ch.qos.logback:logback-classic@1.5.6",
+      "purl": "pkg:maven/ch.qos.logback/logback-classic@1.5.6",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "ch.qos.logback",
+      "name": "logback-core",
+      "version": "1.5.6",
+      "bom-ref": "ch.qos.logback:logback-core@1.5.6",
+      "purl": "pkg:maven/ch.qos.logback/logback-core@1.5.6",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.slf4j",
+      "name": "slf4j-api",
+      "version": "2.0.13",
+      "bom-ref": "org.slf4j:slf4j-api@2.0.13",
+      "purl": "pkg:maven/org.slf4j/slf4j-api@2.0.13",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "com.zaxxer",
+      "name": "HikariCP",
+      "version": "5.1.0",
+      "bom-ref": "com.zaxxer:HikariCP@5.1.0",
+      "purl": "pkg:maven/com.zaxxer/HikariCP@5.1.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "org.yaml",
+      "name": "snakeyaml",
+      "version": "2.2",
+      "bom-ref": "org.yaml:snakeyaml@2.2",
+      "purl": "pkg:maven/org.yaml/snakeyaml@2.2",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "group": "io.micrometer",
+      "name": "micrometer-observation",
+      "version": "1.13.0",
+      "bom-ref": "io.micrometer:micrometer-observation@1.13.0",
+      "purl": "pkg:maven/io.micrometer/micrometer-observation@1.13.0",
+      "scope": "required"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "com.example:nine-line-medevac@0.0.1-SNAPSHOT",
+      "dependsOn": [
+        "org.flywaydb:flyway-core@9.22.1",
+        "org.flywaydb:flyway-database-postgresql@9.22.1",
+        "org.postgresql:postgresql@42.7.3",
+        "org.projectlombok:lombok@1.18.32",
+        "org.springframework.boot:spring-boot-devtools@3.3.0",
+        "org.springframework.boot:spring-boot-starter-data-jpa@3.3.0",
+        "org.springframework.boot:spring-boot-starter-security@3.3.0",
+        "org.springframework.boot:spring-boot-starter-validation@3.3.0",
+        "org.springframework.boot:spring-boot-starter-web@3.3.0"
+      ]
+    },
+    {
+      "ref": "org.springframework.boot:spring-boot-starter-web@3.3.0",
+      "dependsOn": [
+        "org.springframework.boot:spring-boot-starter-json@3.3.0",
+        "org.springframework.boot:spring-boot-starter-tomcat@3.3.0",
+        "org.springframework.boot:spring-boot-starter@3.3.0",
+        "org.springframework:spring-web@6.1.8",
+        "org.springframework:spring-webmvc@6.1.8"
+      ]
+    },
+    {
+      "ref": "org.springframework.boot:spring-boot-starter@3.3.0",
+      "dependsOn": [
+        "org.springframework.boot:spring-boot-autoconfigure@3.3.0",
+        "org.springframework.boot:spring-boot-starter-logging@3.3.0",
+        "org.springframework.boot:spring-boot@3.3.0",
+        "org.yaml:snakeyaml@2.2"
+      ]
+    },
+    {
+      "ref": "org.springframework.boot:spring-boot@3.3.0",
+      "dependsOn": [
+        "org.springframework:spring-context@6.1.8",
+        "org.springframework:spring-core@6.1.8"
+      ]
+    },
+    {
+      "ref": "org.springframework.boot:spring-boot-starter-data-jpa@3.3.0",
+      "dependsOn": [
+        "jakarta.persistence:jakarta.persistence-api@3.1.0",
+        "jakarta.transaction:jakarta.transaction-api@2.0.1",
+        "org.hibernate.orm:hibernate-core@6.5.2.Final",
+        "org.springframework.boot:spring-boot-starter-aop@3.3.0",
+        "org.springframework.boot:spring-boot-starter-jdbc@3.3.0",
+        "org.springframework.data:spring-data-jpa@3.3.0"
+      ]
+    },
+    {
+      "ref": "org.springframework.boot:spring-boot-starter-jdbc@3.3.0",
+      "dependsOn": [
+        "com.zaxxer:HikariCP@5.1.0",
+        "org.springframework:spring-jdbc@6.1.8"
+      ]
+    },
+    {
+      "ref": "org.springframework.boot:spring-boot-starter-security@3.3.0",
+      "dependsOn": [
+        "org.springframework.security:spring-security-config@6.3.0",
+        "org.springframework.security:spring-security-core@6.3.0",
+        "org.springframework.security:spring-security-web@6.3.0"
+      ]
+    },
+    {
+      "ref": "org.springframework.security:spring-security-core@6.3.0",
+      "dependsOn": [
+        "org.springframework.security:spring-security-crypto@6.3.0"
+      ]
+    },
+    {
+      "ref": "org.springframework.boot:spring-boot-starter-validation@3.3.0",
+      "dependsOn": [
+        "jakarta.validation:jakarta.validation-api@3.0.2",
+        "org.hibernate.validator:hibernate-validator@8.0.1.Final"
+      ]
+    },
+    {
+      "ref": "org.springframework.boot:spring-boot-starter-json@3.3.0",
+      "dependsOn": [
+        "com.fasterxml.jackson.core:jackson-databind@2.17.1",
+        "com.fasterxml.jackson.datatype:jackson-datatype-jdk8@2.17.1",
+        "com.fasterxml.jackson.datatype:jackson-datatype-jsr310@2.17.1"
+      ]
+    },
+    {
+      "ref": "com.fasterxml.jackson.core:jackson-databind@2.17.1",
+      "dependsOn": [
+        "com.fasterxml.jackson.core:jackson-annotations@2.17.1",
+        "com.fasterxml.jackson.core:jackson-core@2.17.1"
+      ]
+    },
+    {
+      "ref": "org.springframework.boot:spring-boot-starter-tomcat@3.3.0",
+      "dependsOn": [
+        "org.apache.tomcat.embed:tomcat-embed-core@10.1.24",
+        "org.apache.tomcat.embed:tomcat-embed-websocket@10.1.24"
+      ]
+    },
+    {
+      "ref": "org.springframework.boot:spring-boot-starter-logging@3.3.0",
+      "dependsOn": [
+        "ch.qos.logback:logback-classic@1.5.6",
+        "org.apache.logging.log4j:log4j-to-slf4j@2.23.1"
+      ]
+    },
+    {
+      "ref": "ch.qos.logback:logback-classic@1.5.6",
+      "dependsOn": [
+        "ch.qos.logback:logback-core@1.5.6",
+        "org.slf4j:slf4j-api@2.0.13"
+      ]
+    },
+    {
+      "ref": "org.hibernate.orm:hibernate-core@6.5.2.Final",
+      "dependsOn": [
+        "jakarta.persistence:jakarta.persistence-api@3.1.0",
+        "jakarta.transaction:jakarta.transaction-api@2.0.1",
+        "org.slf4j:slf4j-api@2.0.13"
+      ]
+    },
+    {
+      "ref": "org.springframework.data:spring-data-jpa@3.3.0",
+      "dependsOn": [
+        "org.springframework.data:spring-data-commons@3.3.0",
+        "org.springframework:spring-orm@6.1.8",
+        "org.springframework:spring-tx@6.1.8"
+      ]
+    },
+    {
+      "ref": "org.springframework:spring-context@6.1.8",
+      "dependsOn": [
+        "org.springframework:spring-aop@6.1.8",
+        "org.springframework:spring-beans@6.1.8",
+        "org.springframework:spring-core@6.1.8",
+        "org.springframework:spring-expression@6.1.8"
+      ]
+    },
+    {
+      "ref": "org.springframework:spring-webmvc@6.1.8",
+      "dependsOn": [
+        "org.springframework:spring-context@6.1.8",
+        "org.springframework:spring-web@6.1.8"
+      ]
+    },
+    {
+      "ref": "org.springframework:spring-tx@6.1.8",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.springframework:spring-web@6.1.8",
+      "dependsOn": []
+    },
+    {
+      "ref": "com.fasterxml.jackson.core:jackson-core@2.17.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "io.micrometer:micrometer-observation@1.13.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.flywaydb:flyway-core@9.22.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.springframework.data:spring-data-commons@3.3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.apache.logging.log4j:log4j-to-slf4j@2.23.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.springframework.boot:spring-boot-autoconfigure@3.3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.slf4j:slf4j-api@2.0.13",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.hibernate.validator:hibernate-validator@8.0.1.Final",
+      "dependsOn": []
+    },
+    {
+      "ref": "com.fasterxml.jackson.core:jackson-annotations@2.17.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.springframework:spring-core@6.1.8",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.springframework:spring-orm@6.1.8",
+      "dependsOn": []
+    },
+    {
+      "ref": "jakarta.persistence:jakarta.persistence-api@3.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "jakarta.validation:jakarta.validation-api@3.0.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.springframework.boot:spring-boot-devtools@3.3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.yaml:snakeyaml@2.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.postgresql:postgresql@42.7.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "ch.qos.logback:logback-core@1.5.6",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.springframework.security:spring-security-config@6.3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.springframework.security:spring-security-crypto@6.3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.springframework:spring-beans@6.1.8",
+      "dependsOn": []
+    },
+    {
+      "ref": "com.fasterxml.jackson.datatype:jackson-datatype-jsr310@2.17.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "jakarta.transaction:jakarta.transaction-api@2.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.apache.tomcat.embed:tomcat-embed-websocket@10.1.24",
+      "dependsOn": []
+    },
+    {
+      "ref": "com.fasterxml.jackson.datatype:jackson-datatype-jdk8@2.17.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.apache.tomcat.embed:tomcat-embed-core@10.1.24",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.springframework:spring-expression@6.1.8",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.projectlombok:lombok@1.18.32",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.springframework:spring-jdbc@6.1.8",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.springframework:spring-aop@6.1.8",
+      "dependsOn": []
+    },
+    {
+      "ref": "com.zaxxer:HikariCP@5.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.flywaydb:flyway-database-postgresql@9.22.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.springframework.security:spring-security-web@6.3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "org.springframework.boot:spring-boot-starter-aop@3.3.0",
+      "dependsOn": []
+    }
+  ]
+}
