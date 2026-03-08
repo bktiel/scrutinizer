@@ -15,6 +15,7 @@ import com.scrutinizer.parser.SbomParser;
 import com.scrutinizer.policy.PolicyDefinition;
 import com.scrutinizer.policy.PolicyParseException;
 import com.scrutinizer.policy.PolicyParser;
+import com.scrutinizer.viz.GraphExportCommand;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.stereotype.Service;
 
@@ -40,17 +41,20 @@ public class ScrutinizerCommand implements ExitCodeGenerator {
     private final PolicyParser policyParser;
     private final EnrichmentPipeline enrichmentPipeline;
     private final PostureEvaluator postureEvaluator;
+    private final GraphExportCommand graphExport;
     private int exitCode = 0;
 
     public ScrutinizerCommand(SbomParser parser, GraphAnalyzer analyzer,
                                PolicyParser policyParser,
                                EnrichmentPipeline enrichmentPipeline,
-                               PostureEvaluator postureEvaluator) {
+                               PostureEvaluator postureEvaluator,
+                               GraphExportCommand graphExport) {
         this.parser = parser;
         this.analyzer = analyzer;
         this.policyParser = policyParser;
         this.enrichmentPipeline = enrichmentPipeline;
         this.postureEvaluator = postureEvaluator;
+        this.graphExport = graphExport;
     }
 
     public void run(String... args) {
@@ -76,6 +80,23 @@ public class ScrutinizerCommand implements ExitCodeGenerator {
         } catch (SbomParseException e) {
             System.err.println("Error: " + e.getMessage());
             exitCode = 1;
+            return;
+        }
+
+        // Viz mode: export graph visualization
+        if (cliArgs.vizFormat() != null) {
+            if (cliArgs.outputPath() == null) {
+                System.err.println("Error: --output is required when using --viz");
+                exitCode = 1;
+                return;
+            }
+            try {
+                graphExport.export(cliArgs.sbomPath(), cliArgs.vizFormat(),
+                        cliArgs.outputPath(), null);
+            } catch (IOException e) {
+                System.err.println("Error exporting graph: " + e.getMessage());
+                exitCode = 1;
+            }
             return;
         }
 
@@ -232,13 +253,14 @@ public class ScrutinizerCommand implements ExitCodeGenerator {
     }
 
     // Simple argument parsing (no external dependency)
-    record CliArgs(Path sbomPath, Path policyPath, Path outputPath, String format) {}
+    record CliArgs(Path sbomPath, Path policyPath, Path outputPath, String format, String vizFormat) {}
 
     static CliArgs parseArgs(String[] args) {
         Path sbomPath = null;
         Path policyPath = null;
         Path outputPath = null;
         String format = "table";
+        String vizFormat = null;
 
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
@@ -261,6 +283,13 @@ public class ScrutinizerCommand implements ExitCodeGenerator {
                         throw new IllegalArgumentException("--format must be 'table' or 'json', got '" + format + "'");
                     }
                 }
+                case "--viz" -> {
+                    if (i + 1 >= args.length) throw new IllegalArgumentException("--viz requires an argument (dot|html)");
+                    vizFormat = args[++i];
+                    if (!"dot".equals(vizFormat) && !"html".equals(vizFormat)) {
+                        throw new IllegalArgumentException("--viz must be 'dot' or 'html', got '" + vizFormat + "'");
+                    }
+                }
                 default -> {
                     // Skip Spring Boot args (e.g., --spring.*)
                     if (!args[i].startsWith("--spring") && !args[i].startsWith("--debug")) {
@@ -274,6 +303,6 @@ public class ScrutinizerCommand implements ExitCodeGenerator {
             throw new IllegalArgumentException("--sbom is required");
         }
 
-        return new CliArgs(sbomPath, policyPath, outputPath, format);
+        return new CliArgs(sbomPath, policyPath, outputPath, format, vizFormat);
     }
 }
