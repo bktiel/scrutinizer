@@ -60,7 +60,9 @@ public class PostureEvaluator {
             resultsByComponent.put(ref, componentResults);
         }
 
-        return PostureReport.create(policy, sbomHash, resultsByComponent);
+        List<Finding> findings = FindingFactory.createFindings(resultsByComponent, policy.rules(), graph);
+
+        return PostureReport.create(policy, sbomHash, resultsByComponent, findings);
     }
 
     private Set<String> computeDirectRefs(EnrichedDependencyGraph graph) {

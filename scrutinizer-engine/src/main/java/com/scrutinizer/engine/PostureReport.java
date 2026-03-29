@@ -20,6 +20,7 @@ public final class PostureReport {
     private final double postureScore;
     private final Summary summary;
     private final List<ComponentReport> componentReports;
+    private final List<Finding> findings;
 
     private PostureReport(Builder builder) {
         this.timestamp = builder.timestamp;
@@ -30,6 +31,7 @@ public final class PostureReport {
         this.postureScore = builder.postureScore;
         this.summary = builder.summary;
         this.componentReports = Collections.unmodifiableList(new ArrayList<>(builder.componentReports));
+        this.findings = Collections.unmodifiableList(new ArrayList<>(builder.findings));
     }
 
     public String timestamp() { return timestamp; }
@@ -40,6 +42,7 @@ public final class PostureReport {
     public double postureScore() { return postureScore; }
     public Summary summary() { return summary; }
     public List<ComponentReport> componentReports() { return componentReports; }
+    public List<Finding> findings() { return findings; }
 
     /**
      * Build a PostureReport from evaluation results.
@@ -48,6 +51,14 @@ public final class PostureReport {
             PolicyDefinition policy,
             String sbomHash,
             Map<String, List<RuleResult>> resultsByComponent) {
+        return create(policy, sbomHash, resultsByComponent, List.of());
+    }
+
+    public static PostureReport create(
+            PolicyDefinition policy,
+            String sbomHash,
+            Map<String, List<RuleResult>> resultsByComponent,
+            List<Finding> findings) {
 
         List<RuleResult> allResults = resultsByComponent.values().stream()
                 .flatMap(List::stream)
@@ -86,6 +97,7 @@ public final class PostureReport {
                 .postureScore(score)
                 .summary(summary)
                 .componentReports(compReports)
+                .findings(findings != null ? findings : List.of())
                 .build();
     }
 
@@ -119,6 +131,13 @@ public final class PostureReport {
             components.add(comp);
         }
         map.put("components", components);
+
+        List<Map<String, Object>> findingMaps = new ArrayList<>();
+        for (Finding f : findings) {
+            findingMaps.add(f.toMap());
+        }
+        map.put("findings", findingMaps);
+
         return map;
     }
 
@@ -149,6 +168,7 @@ public final class PostureReport {
         private double postureScore = 10.0;
         private Summary summary = new Summary(0, 0, 0, 0, 0, 0);
         private List<ComponentReport> componentReports = List.of();
+        private List<Finding> findings = List.of();
 
         public Builder timestamp(String v) { this.timestamp = v; return this; }
         public Builder policyName(String v) { this.policyName = v; return this; }
@@ -158,6 +178,7 @@ public final class PostureReport {
         public Builder postureScore(double v) { this.postureScore = v; return this; }
         public Builder summary(Summary v) { this.summary = v; return this; }
         public Builder componentReports(List<ComponentReport> v) { this.componentReports = v; return this; }
+        public Builder findings(List<Finding> v) { this.findings = v; return this; }
         public PostureReport build() { return new PostureReport(this); }
     }
 }
