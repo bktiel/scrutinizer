@@ -1,5 +1,7 @@
 package com.scrutinizer.evidence;
 
+import com.scrutinizer.engine.EvaluationMetrics;
+
 import java.time.Instant;
 import java.util.*;
 
@@ -12,14 +14,21 @@ public final class EvidenceManifest {
     private final AuditMetadata auditMetadata;
     private final List<ChainOfCustodyEntry> chainOfCustody;
     private final String reviewerNotes;
+    private final EvaluationMetrics metrics;
 
     public EvidenceManifest(String engineVersion, String schemaVersion, List<ArtifactEntry> artifacts) {
-        this(engineVersion, schemaVersion, artifacts, null, List.of(), null);
+        this(engineVersion, schemaVersion, artifacts, null, List.of(), null, null);
     }
 
     public EvidenceManifest(String engineVersion, String schemaVersion, List<ArtifactEntry> artifacts,
                             AuditMetadata auditMetadata, List<ChainOfCustodyEntry> chainOfCustody,
                             String reviewerNotes) {
+        this(engineVersion, schemaVersion, artifacts, auditMetadata, chainOfCustody, reviewerNotes, null);
+    }
+
+    public EvidenceManifest(String engineVersion, String schemaVersion, List<ArtifactEntry> artifacts,
+                            AuditMetadata auditMetadata, List<ChainOfCustodyEntry> chainOfCustody,
+                            String reviewerNotes, EvaluationMetrics metrics) {
         this.generatedAt = Instant.now().toString();
         this.engineVersion = Objects.requireNonNull(engineVersion);
         this.schemaVersion = Objects.requireNonNull(schemaVersion);
@@ -27,6 +36,7 @@ public final class EvidenceManifest {
         this.auditMetadata = auditMetadata;
         this.chainOfCustody = Collections.unmodifiableList(new ArrayList<>(chainOfCustody));
         this.reviewerNotes = reviewerNotes;
+        this.metrics = metrics;
     }
 
     public String generatedAt() { return generatedAt; }
@@ -36,6 +46,7 @@ public final class EvidenceManifest {
     public AuditMetadata auditMetadata() { return auditMetadata; }
     public List<ChainOfCustodyEntry> chainOfCustody() { return chainOfCustody; }
     public String reviewerNotes() { return reviewerNotes; }
+    public EvaluationMetrics metrics() { return metrics; }
 
     public Map<String, Object> toMap() {
         Map<String, Object> map = new LinkedHashMap<>();
@@ -63,6 +74,10 @@ public final class EvidenceManifest {
 
         if (reviewerNotes != null && !reviewerNotes.isBlank()) {
             map.put("reviewerNotes", reviewerNotes);
+        }
+
+        if (metrics != null) {
+            map.put("evaluationMetrics", metrics.toMap());
         }
 
         return map;

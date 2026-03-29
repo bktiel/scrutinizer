@@ -45,6 +45,7 @@ public class PostureRunMapper {
                 entity.getReviewStatus(),
                 entity.getReviewerNotes(),
                 entity.getReviewedAt(),
+                entity.getMetricsJson(),
                 componentDtos
         );
     }

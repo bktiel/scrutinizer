@@ -18,6 +18,7 @@ public record PostureRunDetailDto(
         String reviewStatus,
         String reviewerNotes,
         Instant reviewedAt,
+        String metricsJson,
         List<ComponentResultDto> componentResults
 ) {
     public record ComponentResultDto(

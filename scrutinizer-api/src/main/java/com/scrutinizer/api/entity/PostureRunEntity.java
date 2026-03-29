@@ -49,6 +49,9 @@ public class PostureRunEntity {
 
     private Instant reviewedAt;
 
+    @Column(columnDefinition = "jsonb")
+    private String metricsJson;
+
     @OneToMany(mappedBy = "postureRun", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("componentRef ASC")
     private List<ComponentResultEntity> componentResults = new ArrayList<>();
@@ -87,4 +90,6 @@ public class PostureRunEntity {
     public void setReviewerNotes(String reviewerNotes) { this.reviewerNotes = reviewerNotes; }
     public Instant getReviewedAt() { return reviewedAt; }
     public void setReviewedAt(Instant reviewedAt) { this.reviewedAt = reviewedAt; }
+    public String getMetricsJson() { return metricsJson; }
+    public void setMetricsJson(String metricsJson) { this.metricsJson = metricsJson; }
 }
