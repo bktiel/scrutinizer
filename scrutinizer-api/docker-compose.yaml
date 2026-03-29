@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: scrutinizer
+      POSTGRES_USER: scrutinizer
+      POSTGRES_PASSWORD: scrutinizer
+    ports:
+      - "5450:5432"
+    volumes:
+      - scrutinizer-pgdata:/var/lib/postgresql/data
+
+volumes:
+  scrutinizer-pgdata:

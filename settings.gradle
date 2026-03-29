@@ -1,0 +1,3 @@
+rootProject.name = 'scrutinizer'
+
+include 'scrutinizer-engine', 'scrutinizer-api'

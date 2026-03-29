@@ -4,19 +4,6 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.5'
 }
 
-group = 'com.scrutinizer'
-version = '0.1.0-SNAPSHOT'
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -38,6 +25,12 @@ springBoot {
     mainClass = 'com.scrutinizer.ScrutinizerApplication'
 }
 
-tasks.named('bootJar') {
+jar {
+    enabled = true
+    archiveClassifier = ''
+}
+
+bootJar {
+    archiveClassifier = 'boot'
     archiveFileName = 'scrutinizer.jar'
 }
