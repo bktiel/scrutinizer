@@ -253,7 +253,7 @@ public class ScrutinizerCommand implements ExitCodeGenerator {
     }
 
     // Simple argument parsing (no external dependency)
-    record CliArgs(Path sbomPath, Path policyPath, Path outputPath, String format, String vizFormat) {}
+    record CliArgs(Path sbomPath, Path policyPath, Path outputPath, String format, String vizFormat, boolean noFile) {}
 
     static CliArgs parseArgs(String[] args) {
         Path sbomPath = null;
@@ -261,6 +261,7 @@ public class ScrutinizerCommand implements ExitCodeGenerator {
         Path outputPath = null;
         String format = "table";
         String vizFormat = null;
+        boolean noFile = false;
 
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
@@ -290,8 +291,8 @@ public class ScrutinizerCommand implements ExitCodeGenerator {
                         throw new IllegalArgumentException("--viz must be 'dot' or 'html', got '" + vizFormat + "'");
                     }
                 }
+                case "--no-file" -> noFile = true;
                 default -> {
-                    // Skip Spring Boot args (e.g., --spring.*)
                     if (!args[i].startsWith("--spring") && !args[i].startsWith("--debug")) {
                         throw new IllegalArgumentException("Unknown argument: " + args[i]);
                     }
@@ -303,6 +304,10 @@ public class ScrutinizerCommand implements ExitCodeGenerator {
             throw new IllegalArgumentException("--sbom is required");
         }
 
-        return new CliArgs(sbomPath, policyPath, outputPath, format, vizFormat);
+        if (policyPath != null && outputPath == null && !noFile) {
+            outputPath = Path.of("./posture-report.json");
+        }
+
+        return new CliArgs(sbomPath, policyPath, outputPath, format, vizFormat, noFile);
     }
 }

@@ -106,6 +106,7 @@ public final class PostureReport {
      */
     public Map<String, Object> toMap() {
         Map<String, Object> map = new LinkedHashMap<>();
+        map.put("schemaVersion", "1.0");
         map.put("timestamp", timestamp);
         map.put("policy", Map.of("name", policyName, "version", policyVersion));
         map.put("sbomHash", sbomHash);

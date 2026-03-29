@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://scrutinizer.dev/schemas/posture-report/v1.0",
+  "title": "Scrutinizer Posture Report",
+  "description": "Evidence bundle produced by the Scrutinizer posture evaluation engine",
+  "type": "object",
+  "required": ["schemaVersion", "timestamp", "policy", "sbomHash", "overallDecision", "postureScore", "summary", "components", "findings"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "policy": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "sbomHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "overallDecision": {
+      "type": "string",
+      "enum": ["PASS", "WARN", "FAIL", "INFO", "SKIP"]
+    },
+    "postureScore": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total", "pass", "warn", "fail", "info", "skip"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "pass": { "type": "integer", "minimum": 0 },
+        "warn": { "type": "integer", "minimum": 0 },
+        "fail": { "type": "integer", "minimum": 0 },
+        "info": { "type": "integer", "minimum": 0 },
+        "skip": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["componentRef", "rules"],
+        "properties": {
+          "componentRef": { "type": "string" },
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["ruleId", "decision"],
+              "properties": {
+                "ruleId": { "type": "string" },
+                "decision": { "type": "string", "enum": ["PASS", "WARN", "FAIL", "INFO", "SKIP"] },
+                "actual": { "type": ["string", "null"] },
+                "expected": { "type": ["string", "null"] },
+                "description": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "componentRef", "componentName", "ruleId", "decision", "severity", "field"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^F-\\d{4}$" },
+          "componentRef": { "type": "string" },
+          "componentName": { "type": "string" },
+          "ruleId": { "type": "string" },
+          "decision": { "type": "string", "enum": ["PASS", "WARN", "FAIL", "INFO", "SKIP"] },
+          "severity": { "type": "string" },
+          "field": { "type": "string" },
+          "actualValue": { "type": ["string", "null"] },
+          "expectedValue": { "type": ["string", "null"] },
+          "description": { "type": "string" },
+          "remediation": { "type": "string" },
+          "isDirect": { "type": "boolean" },
+          "depthFromRoot": { "type": "integer" },
+          "evidenceChain": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}
