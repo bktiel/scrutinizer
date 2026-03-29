@@ -15,6 +15,7 @@ import com.scrutinizer.parser.SbomParser;
 import com.scrutinizer.policy.PolicyDefinition;
 import com.scrutinizer.policy.PolicyParseException;
 import com.scrutinizer.policy.PolicyParser;
+import com.scrutinizer.evidence.EvidenceBundleWriter;
 import com.scrutinizer.viz.GraphExportCommand;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.stereotype.Service;
@@ -130,14 +131,22 @@ public class ScrutinizerCommand implements ExitCodeGenerator {
         // Evaluate
         PostureReport report = postureEvaluator.evaluate(enrichedGraph, policy, sbomJson);
 
-        // Output
+        if (cliArgs.outputDir() != null) {
+            try {
+                EvidenceBundleWriter.write(report, enrichedGraph, cliArgs.outputDir());
+                System.out.println("Evidence bundle written to: " + cliArgs.outputDir());
+            } catch (IOException e) {
+                System.err.println("Error writing evidence bundle: " + e.getMessage());
+                exitCode = 1;
+                return;
+            }
+        }
+
         if ("json".equals(cliArgs.format())) {
             printReportJson(report, cliArgs.outputPath());
         } else {
             printReportTable(report);
         }
-
-        // Set exit code based on overall decision
         if (report.overallDecision() == RuleResult.Decision.FAIL) {
             exitCode = 2;
         } else if (report.overallDecision() == RuleResult.Decision.WARN) {
@@ -253,7 +262,8 @@ public class ScrutinizerCommand implements ExitCodeGenerator {
     }
 
     // Simple argument parsing (no external dependency)
-    record CliArgs(Path sbomPath, Path policyPath, Path outputPath, String format, String vizFormat, boolean noFile) {}
+    record CliArgs(Path sbomPath, Path policyPath, Path outputPath, String format,
+                   String vizFormat, boolean noFile, Path outputDir) {}
 
     static CliArgs parseArgs(String[] args) {
         Path sbomPath = null;
@@ -262,6 +272,7 @@ public class ScrutinizerCommand implements ExitCodeGenerator {
         String format = "table";
         String vizFormat = null;
         boolean noFile = false;
+        Path outputDir = null;
 
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
@@ -292,6 +303,10 @@ public class ScrutinizerCommand implements ExitCodeGenerator {
                     }
                 }
                 case "--no-file" -> noFile = true;
+                case "--output-dir" -> {
+                    if (i + 1 >= args.length) throw new IllegalArgumentException("--output-dir requires a path argument");
+                    outputDir = Path.of(args[++i]);
+                }
                 default -> {
                     if (!args[i].startsWith("--spring") && !args[i].startsWith("--debug")) {
                         throw new IllegalArgumentException("Unknown argument: " + args[i]);
@@ -308,6 +323,6 @@ public class ScrutinizerCommand implements ExitCodeGenerator {
             outputPath = Path.of("./posture-report.json");
         }
 
-        return new CliArgs(sbomPath, policyPath, outputPath, format, vizFormat, noFile);
+        return new CliArgs(sbomPath, policyPath, outputPath, format, vizFormat, noFile, outputDir);
     }
 }
