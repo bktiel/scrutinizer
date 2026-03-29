@@ -64,7 +64,7 @@ public final class PostureReport {
                 .flatMap(List::stream)
                 .toList();
 
-        RuleResult.Decision overall = PostureScorer.computeOverallDecision(allResults, policy.scoring());
+        RuleResult.Decision overall = PostureScorer.computeOverallDecision(allResults, policy.scoring(), policy.rules());
         double score = PostureScorer.computeScore(allResults);
 
         // Count decisions

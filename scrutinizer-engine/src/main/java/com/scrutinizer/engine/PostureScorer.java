@@ -1,23 +1,24 @@
 package com.scrutinizer.engine;
 
+import com.scrutinizer.policy.Rule;
 import com.scrutinizer.policy.ScoringConfig;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-/**
- * Computes aggregate posture scores and overall decisions from rule results.
- */
 public final class PostureScorer {
 
     private PostureScorer() {}
 
-    /**
-     * Compute the overall decision for a set of rule results using the scoring config.
-     */
     public static RuleResult.Decision computeOverallDecision(
             List<RuleResult> results, ScoringConfig config) {
+        return computeOverallDecision(results, config, List.of());
+    }
 
-        // Filter out SKIP and INFO — only evaluate PASS/WARN/FAIL
+    public static RuleResult.Decision computeOverallDecision(
+            List<RuleResult> results, ScoringConfig config, List<Rule> rules) {
+
         List<RuleResult> actionable = results.stream()
                 .filter(r -> r.decision() != RuleResult.Decision.SKIP
                         && r.decision() != RuleResult.Decision.INFO)
@@ -30,13 +31,10 @@ public final class PostureScorer {
         return switch (config.method()) {
             case PASS_FAIL -> computePassFail(actionable);
             case WORST_CASE -> computeWorstCase(actionable);
-            case WEIGHTED_AVERAGE -> computeWeightedAverage(actionable, config);
+            case WEIGHTED_AVERAGE -> computeWeightedAverage(actionable, config, rules);
         };
     }
 
-    /**
-     * PASS_FAIL: Any FAIL -> overall FAIL; any WARN -> overall WARN; else PASS.
-     */
     private static RuleResult.Decision computePassFail(List<RuleResult> results) {
         boolean hasFail = results.stream().anyMatch(RuleResult::isFailing);
         if (hasFail) return RuleResult.Decision.FAIL;
@@ -47,44 +45,70 @@ public final class PostureScorer {
         return RuleResult.Decision.PASS;
     }
 
-    /**
-     * WORST_CASE: Overall decision is the worst decision across all results.
-     */
     private static RuleResult.Decision computeWorstCase(List<RuleResult> results) {
-        return computePassFail(results); // Same logic for WORST_CASE
+        return computePassFail(results);
     }
 
-    /**
-     * WEIGHTED_AVERAGE: Compute a numeric score and compare to thresholds.
-     * Components with PASS score 10, WARN scores 5, FAIL scores 0.
-     */
     private static RuleResult.Decision computeWeightedAverage(
-            List<RuleResult> results, ScoringConfig config) {
+            List<RuleResult> results, ScoringConfig config, List<Rule> rules) {
 
-        double totalScore = 0;
-        int count = 0;
-        for (RuleResult r : results) {
-            double componentScore = switch (r.decision()) {
-                case PASS -> 10.0;
-                case WARN -> 5.0;
-                case FAIL -> 0.0;
-                default -> 5.0; // INFO
-            };
-            totalScore += componentScore;
-            count++;
+        Map<String, String> ruleIdToField = new HashMap<>();
+        for (Rule rule : rules) {
+            ruleIdToField.put(rule.id(), rule.field());
         }
 
-        if (count == 0) return RuleResult.Decision.PASS;
+        Map<String, Double> weights = config.weights();
+        boolean hasWeights = !weights.isEmpty();
 
-        double avg = totalScore / count;
+        double weightedTotal = 0;
+        double totalWeight = 0;
+        double unweightedTotal = 0;
+        int unweightedCount = 0;
+
+        for (RuleResult r : results) {
+            double decisionScore = decisionToScore(r.decision());
+
+            if (hasWeights) {
+                String field = ruleIdToField.get(r.ruleId());
+                Double weight = field != null ? weights.get(field) : null;
+
+                if (weight != null) {
+                    weightedTotal += decisionScore * weight;
+                    totalWeight += weight;
+                } else {
+                    unweightedTotal += decisionScore;
+                    unweightedCount++;
+                }
+            } else {
+                unweightedTotal += decisionScore;
+                unweightedCount++;
+            }
+        }
+
+        double avg;
+        if (hasWeights && totalWeight > 0) {
+            double combinedTotal = weightedTotal;
+            double combinedWeight = totalWeight;
+            if (unweightedCount > 0) {
+                double remainingWeight = Math.max(0, 1.0 - totalWeight);
+                double perItemWeight = unweightedCount > 0 ? remainingWeight / unweightedCount : 0;
+                for (int i = 0; i < unweightedCount; i++) {
+                    combinedWeight += perItemWeight;
+                }
+                combinedTotal += (unweightedTotal / unweightedCount) * remainingWeight;
+            }
+            avg = combinedWeight > 0 ? combinedTotal / combinedWeight : 0;
+        } else if (unweightedCount > 0) {
+            avg = unweightedTotal / unweightedCount;
+        } else {
+            return RuleResult.Decision.PASS;
+        }
+
         if (avg >= config.passThreshold()) return RuleResult.Decision.PASS;
         if (avg >= config.warnThreshold()) return RuleResult.Decision.WARN;
         return RuleResult.Decision.FAIL;
     }
 
-    /**
-     * Compute a numeric posture score (0-10 scale) from rule results.
-     */
     public static double computeScore(List<RuleResult> results) {
         List<RuleResult> actionable = results.stream()
                 .filter(r -> r.decision() != RuleResult.Decision.SKIP
@@ -95,13 +119,17 @@ public final class PostureScorer {
 
         double total = 0;
         for (RuleResult r : actionable) {
-            total += switch (r.decision()) {
-                case PASS -> 10.0;
-                case WARN -> 5.0;
-                case FAIL -> 0.0;
-                default -> 5.0;
-            };
+            total += decisionToScore(r.decision());
         }
         return total / actionable.size();
+    }
+
+    private static double decisionToScore(RuleResult.Decision decision) {
+        return switch (decision) {
+            case PASS -> 10.0;
+            case WARN -> 5.0;
+            case FAIL -> 0.0;
+            default -> 5.0;
+        };
     }
 }

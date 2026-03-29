@@ -1,5 +1,6 @@
 package com.scrutinizer.engine;
 
+import com.scrutinizer.policy.Rule;
 import com.scrutinizer.policy.ScoringConfig;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,10 @@ class PostureScorerTest {
 
     private RuleResult result(RuleResult.Decision decision) {
         return new RuleResult("comp-ref", "rule-1", decision, "actual", "expected", "test rule");
+    }
+
+    private RuleResult resultWithRule(String ruleId, RuleResult.Decision decision) {
+        return new RuleResult("comp-ref", ruleId, decision, "actual", "expected", "test rule");
     }
 
     @Nested
@@ -102,6 +107,56 @@ class PostureScorerTest {
             // avg = 2.5 < 4.0 -> FAIL
             assertThat(PostureScorer.computeOverallDecision(results, config))
                     .isEqualTo(RuleResult.Decision.FAIL);
+        }
+
+        @Test
+        void weightsAppliedToFieldBasedScoring() {
+            ScoringConfig weightedConfig = new ScoringConfig(
+                    ScoringConfig.Method.WEIGHTED_AVERAGE,
+                    Map.of("scorecard.score", 0.8, "provenance.present", 0.2),
+                    7.0, 4.0);
+
+            Rule scorecardRule = new Rule("sc-check", "Scorecard", "scorecard.score",
+                    Rule.Operator.GTE, "5.0", Rule.Severity.FAIL);
+            Rule provenanceRule = new Rule("prov-check", "Provenance", "provenance.present",
+                    Rule.Operator.EQ, "true", Rule.Severity.WARN);
+
+            List<RuleResult> results = List.of(
+                    resultWithRule("sc-check", RuleResult.Decision.PASS),
+                    resultWithRule("prov-check", RuleResult.Decision.FAIL)
+            );
+
+            RuleResult.Decision decision = PostureScorer.computeOverallDecision(
+                    results, weightedConfig, List.of(scorecardRule, provenanceRule));
+
+            // scorecard: 10.0 * 0.8 = 8.0, provenance: 0.0 * 0.2 = 0.0
+            // total = 8.0 / 1.0 = 8.0 >= 7.0 -> PASS
+            assertThat(decision).isEqualTo(RuleResult.Decision.PASS);
+        }
+
+        @Test
+        void weightsHeavilyOnFailingField() {
+            ScoringConfig weightedConfig = new ScoringConfig(
+                    ScoringConfig.Method.WEIGHTED_AVERAGE,
+                    Map.of("scorecard.score", 0.2, "provenance.present", 0.8),
+                    7.0, 4.0);
+
+            Rule scorecardRule = new Rule("sc-check", "Scorecard", "scorecard.score",
+                    Rule.Operator.GTE, "5.0", Rule.Severity.FAIL);
+            Rule provenanceRule = new Rule("prov-check", "Provenance", "provenance.present",
+                    Rule.Operator.EQ, "true", Rule.Severity.WARN);
+
+            List<RuleResult> results = List.of(
+                    resultWithRule("sc-check", RuleResult.Decision.PASS),
+                    resultWithRule("prov-check", RuleResult.Decision.FAIL)
+            );
+
+            RuleResult.Decision decision = PostureScorer.computeOverallDecision(
+                    results, weightedConfig, List.of(scorecardRule, provenanceRule));
+
+            // scorecard: 10.0 * 0.2 = 2.0, provenance: 0.0 * 0.8 = 0.0
+            // total = 2.0 / 1.0 = 2.0 < 4.0 -> FAIL
+            assertThat(decision).isEqualTo(RuleResult.Decision.FAIL);
         }
     }
 
