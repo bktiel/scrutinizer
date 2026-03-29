@@ -1,0 +1,13 @@
+apiVersion: scrutinizer/v1
+kind: PosturePolicy
+metadata:
+  name: always-fail
+  version: "1.0"
+
+rules:
+  - id: impossible-scorecard
+    description: "Scorecard must be perfect 10 (impossible for most)"
+    field: scorecard.score
+    operator: gte
+    value: "99.0"
+    severity: FAIL

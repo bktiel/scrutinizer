@@ -1,0 +1,26 @@
+.scrutinizer-scan:
+  image: scrutinizer:latest
+  variables:
+    SCRUTINIZER_SBOM_PATH: ""
+    SCRUTINIZER_POLICY_PATH: ""
+    SCRUTINIZER_OUTPUT_DIR: "./scrutinizer-output"
+  script:
+    - mkdir -p ${SCRUTINIZER_OUTPUT_DIR}
+    - |
+      java -jar /app/scrutinizer.jar \
+        --sbom ${SCRUTINIZER_SBOM_PATH} \
+        --policy ${SCRUTINIZER_POLICY_PATH} \
+        --output ${SCRUTINIZER_OUTPUT_DIR}/posture-report.json \
+        --format json
+    - |
+      java -jar /app/scrutinizer.jar \
+        --sbom ${SCRUTINIZER_SBOM_PATH} \
+        --format json \
+        --no-file > ${SCRUTINIZER_OUTPUT_DIR}/inventory.json
+  artifacts:
+    paths:
+      - ${SCRUTINIZER_OUTPUT_DIR}/posture-report.json
+      - ${SCRUTINIZER_OUTPUT_DIR}/inventory.json
+    when: always
+    expire_in: 30 days
+  allow_failure: false

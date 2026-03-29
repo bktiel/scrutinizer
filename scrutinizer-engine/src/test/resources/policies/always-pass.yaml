@@ -1,0 +1,13 @@
+apiVersion: scrutinizer/v1
+kind: PosturePolicy
+metadata:
+  name: always-pass
+  version: "1.0"
+
+rules:
+  - id: minimum-scorecard
+    description: "Scorecard must be above zero"
+    field: scorecard.score
+    operator: gte
+    value: "0.0"
+    severity: WARN

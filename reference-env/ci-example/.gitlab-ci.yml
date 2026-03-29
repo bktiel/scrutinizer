@@ -1,0 +1,23 @@
+include:
+  - local: "scrutinizer-engine/ci-templates/.scrutinizer-ci.yml"
+
+stages:
+  - build
+  - test
+  - security
+
+scrutinizer-frontend-scan:
+  extends: .scrutinizer-scan
+  stage: security
+  variables:
+    SCRUTINIZER_SBOM_PATH: "reference-env/sboms/ref-app-1-frontend.cdx.json"
+    SCRUTINIZER_POLICY_PATH: "reference-env/policies/strict.yaml"
+    SCRUTINIZER_OUTPUT_DIR: "./scrutinizer-output/frontend"
+
+scrutinizer-backend-scan:
+  extends: .scrutinizer-scan
+  stage: security
+  variables:
+    SCRUTINIZER_SBOM_PATH: "reference-env/sboms/ref-app-1-backend.cdx.json"
+    SCRUTINIZER_POLICY_PATH: "reference-env/policies/java-baseline.yaml"
+    SCRUTINIZER_OUTPUT_DIR: "./scrutinizer-output/backend"
