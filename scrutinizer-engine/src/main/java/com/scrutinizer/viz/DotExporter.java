@@ -64,8 +64,11 @@ public final class DotExporter {
 
         sb.append("\n");
 
-        // Edge definitions
+        // Edge definitions (skip edges referencing nodes not in the components list)
         for (DependencyEdge edge : graph.edges()) {
+            if (!componentMap.containsKey(edge.sourceRef()) || !componentMap.containsKey(edge.targetRef())) {
+                continue;
+            }
             String from = sanitizeId(edge.sourceRef());
             String to = sanitizeId(edge.targetRef());
             sb.append("    ").append(from).append(" -> ").append(to).append(";\n");

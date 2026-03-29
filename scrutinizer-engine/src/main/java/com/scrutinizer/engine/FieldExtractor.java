@@ -1,6 +1,7 @@
 package com.scrutinizer.engine;
 
 import com.scrutinizer.enrichment.EnrichedComponent;
+import com.scrutinizer.enrichment.PurlResolver;
 
 import java.util.Optional;
 
@@ -8,12 +9,23 @@ import java.util.Optional;
  * Extracts field values from an EnrichedComponent using dot-notation paths.
  *
  * Supported fields:
- * - name, version, type, scope, group, purl, bomRef
- * - scorecard.score
- * - scorecard.checks.{CheckName}
- * - provenance.present
- * - provenance.level
- * - provenance.source
+ *
+ * Component-level:
+ *   name, version, type, scope, group, purl, bomRef
+ *
+ * Ecosystem-aware (derived from purl):
+ *   ecosystem              — "npm", "maven", "pypi", "golang", etc.
+ *   maven.groupId          — Maven group ID (e.g., "org.springframework.boot")
+ *   maven.artifactId       — Maven artifact ID (e.g., "spring-boot-starter")
+ *
+ * Scorecard:
+ *   scorecard.score                — overall OpenSSF Scorecard score
+ *   scorecard.checks.{CheckName}  — individual check score
+ *
+ * Provenance:
+ *   provenance.present  — "true" or "false"
+ *   provenance.level    — SLSA level (SLSA_L1, SLSA_L2, etc.)
+ *   provenance.source   — detection source (e.g., "npm-sigstore", "maven-pgp")
  */
 public final class FieldExtractor {
 
@@ -42,6 +54,20 @@ public final class FieldExtractor {
                 return ec.component().purl();
             case "bomRef":
                 return Optional.of(ec.component().bomRef());
+        }
+
+        // Ecosystem-derived fields
+        if (fieldPath.equals("ecosystem")) {
+            return ec.component().purl()
+                    .flatMap(PurlResolver::extractEcosystem);
+        }
+        if (fieldPath.equals("maven.groupId")) {
+            return ec.component().purl()
+                    .flatMap(PurlResolver::extractMavenGroupId);
+        }
+        if (fieldPath.equals("maven.artifactId")) {
+            return ec.component().purl()
+                    .flatMap(PurlResolver::extractMavenArtifactId);
         }
 
         // Scorecard fields

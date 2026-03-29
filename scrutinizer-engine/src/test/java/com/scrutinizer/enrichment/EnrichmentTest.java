@@ -37,10 +37,128 @@ class EnrichmentTest {
         }
 
         @Test
+        void resolvesMavenSpringBootPurl() {
+            Optional<String> url = PurlResolver.toRepoUrl(
+                    "pkg:maven/org.springframework.boot/spring-boot-starter@3.3.0");
+            assertThat(url).hasValue("github.com/spring-projects/spring-boot");
+        }
+
+        @Test
+        void resolvesMavenSpringSecurityPurl() {
+            Optional<String> url = PurlResolver.toRepoUrl(
+                    "pkg:maven/org.springframework.security/spring-security-core@6.3.0");
+            assertThat(url).hasValue("github.com/spring-projects/spring-security");
+        }
+
+        @Test
+        void resolvesMavenSpringDataPurl() {
+            Optional<String> url = PurlResolver.toRepoUrl(
+                    "pkg:maven/org.springframework.data/spring-data-jpa@3.3.0");
+            assertThat(url).hasValue("github.com/spring-projects/spring-data");
+        }
+
+        @Test
         void resolvesMavenJacksonPurl() {
             Optional<String> url = PurlResolver.toRepoUrl(
                     "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.17.1");
             assertThat(url).hasValue("github.com/FasterXML/jackson-databind");
+        }
+
+        @Test
+        void resolvesMavenJakartaPersistence() {
+            Optional<String> url = PurlResolver.toRepoUrl(
+                    "pkg:maven/jakarta.persistence/jakarta.persistence-api@3.1.0");
+            assertThat(url).hasValue("github.com/jakartaee/persistence");
+        }
+
+        @Test
+        void resolvesMavenJakartaValidation() {
+            Optional<String> url = PurlResolver.toRepoUrl(
+                    "pkg:maven/jakarta.validation/jakarta.validation-api@3.0.2");
+            assertThat(url).hasValue("github.com/jakartaee/validation");
+        }
+
+        @Test
+        void resolvesMavenHibernateOrm() {
+            Optional<String> url = PurlResolver.toRepoUrl(
+                    "pkg:maven/org.hibernate.orm/hibernate-core@6.5.2");
+            assertThat(url).hasValue("github.com/hibernate/hibernate-orm");
+        }
+
+        @Test
+        void resolvesMavenLog4j() {
+            Optional<String> url = PurlResolver.toRepoUrl(
+                    "pkg:maven/org.apache.logging.log4j/log4j-api@2.23.0");
+            assertThat(url).hasValue("github.com/apache/logging-log4j2");
+        }
+
+        @Test
+        void resolvesMavenMicrometer() {
+            Optional<String> url = PurlResolver.toRepoUrl(
+                    "pkg:maven/io.micrometer/micrometer-core@1.13.0");
+            assertThat(url).hasValue("github.com/micrometer-metrics/micrometer");
+        }
+
+        @Test
+        void resolvesMavenPostgresql() {
+            Optional<String> url = PurlResolver.toRepoUrl(
+                    "pkg:maven/org.postgresql/postgresql@42.7.3");
+            assertThat(url).hasValue("github.com/pgjdbc/pgjdbc");
+        }
+
+        @Test
+        void resolvesMavenLogback() {
+            Optional<String> url = PurlResolver.toRepoUrl(
+                    "pkg:maven/ch.qos.logback/logback-classic@1.4.14");
+            assertThat(url).hasValue("github.com/qos-ch/logback");
+        }
+
+        @Test
+        void resolvesMavenJunit() {
+            Optional<String> url = PurlResolver.toRepoUrl(
+                    "pkg:maven/org.junit.jupiter/junit-jupiter-api@5.10.2");
+            assertThat(url).hasValue("github.com/junit-team/junit5");
+        }
+
+        @Test
+        void resolvesMavenLombok() {
+            Optional<String> url = PurlResolver.toRepoUrl(
+                    "pkg:maven/org.projectlombok/lombok@1.18.32");
+            assertThat(url).hasValue("github.com/projectlombok/lombok");
+        }
+
+        @Test
+        void resolvesMavenHikariCP() {
+            Optional<String> url = PurlResolver.toRepoUrl(
+                    "pkg:maven/com.zaxxer/HikariCP@5.1.0");
+            assertThat(url).hasValue("github.com/brettwooldridge/HikariCP");
+        }
+
+        @Test
+        void mavenFallbackUsesSecondSegmentAsOrg() {
+            // Unknown group: "com.example.foo" → org = "example"
+            Optional<String> url = PurlResolver.toRepoUrl(
+                    "pkg:maven/com.example.foo/my-lib@1.0.0");
+            assertThat(url).hasValue("github.com/example/my-lib");
+        }
+
+        @Test
+        void resolvesPypiKnownPackage() {
+            Optional<String> url = PurlResolver.toRepoUrl("pkg:pypi/django@4.2.0");
+            assertThat(url).hasValue("github.com/django/django");
+        }
+
+        @Test
+        void pypiUnknownPackageReturnsEmpty() {
+            Optional<String> url = PurlResolver.toRepoUrl("pkg:pypi/obscure-lib@0.1.0");
+            assertThat(url).isEmpty();
+        }
+
+        @Test
+        void resolvesGolangGithubModule() {
+            Optional<String> url = PurlResolver.toRepoUrl(
+                    "pkg:golang/github.com/gin-gonic/gin@1.9.1");
+            assertThat(url).hasValue("github.com/gin-gonic/gin");
         }
 
         @Test
@@ -49,8 +167,32 @@ class EnrichmentTest {
         }
 
         @Test
-        void returnsEmptyForUnknownScheme() {
-            assertThat(PurlResolver.toRepoUrl("pkg:pypi/requests@2.31.0")).isEmpty();
+        void extractsEcosystem() {
+            assertThat(PurlResolver.extractEcosystem("pkg:npm/axios@1.0")).hasValue("npm");
+            assertThat(PurlResolver.extractEcosystem("pkg:maven/org/art@1.0")).hasValue("maven");
+            assertThat(PurlResolver.extractEcosystem("pkg:pypi/flask@2.0")).hasValue("pypi");
+            assertThat(PurlResolver.extractEcosystem("pkg:golang/mod@1.0")).hasValue("golang");
+            assertThat(PurlResolver.extractEcosystem(null)).isEmpty();
+        }
+
+        @Test
+        void extractsMavenGroupId() {
+            assertThat(PurlResolver.extractMavenGroupId(
+                    "pkg:maven/org.springframework.boot/spring-boot@3.3.0"))
+                    .hasValue("org.springframework.boot");
+        }
+
+        @Test
+        void extractsMavenArtifactId() {
+            assertThat(PurlResolver.extractMavenArtifactId(
+                    "pkg:maven/org.springframework.boot/spring-boot@3.3.0"))
+                    .hasValue("spring-boot");
+        }
+
+        @Test
+        void mavenExtractReturnsEmptyForNonMaven() {
+            assertThat(PurlResolver.extractMavenGroupId("pkg:npm/axios@1.0")).isEmpty();
+            assertThat(PurlResolver.extractMavenArtifactId("pkg:npm/axios@1.0")).isEmpty();
         }
     }
 

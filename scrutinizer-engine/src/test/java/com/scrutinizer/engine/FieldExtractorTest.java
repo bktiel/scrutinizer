@@ -147,6 +147,53 @@ class FieldExtractorTest {
     }
 
     @Nested
+    class EcosystemFields {
+
+        @Test
+        void extractsMavenEcosystem() {
+            EnrichedComponent ec = EnrichedComponent.unenriched(baseComponent());
+            assertThat(FieldExtractor.extract(ec, "ecosystem")).hasValue("maven");
+        }
+
+        @Test
+        void extractsNpmEcosystem() {
+            Component npmComp = new Component("axios", "1.7.2", "axios-ref", "library",
+                    null, "pkg:npm/axios@1.7.2", null, "required");
+            EnrichedComponent ec = EnrichedComponent.unenriched(npmComp);
+            assertThat(FieldExtractor.extract(ec, "ecosystem")).hasValue("npm");
+        }
+
+        @Test
+        void extractsMavenGroupId() {
+            EnrichedComponent ec = EnrichedComponent.unenriched(baseComponent());
+            assertThat(FieldExtractor.extract(ec, "maven.groupId")).hasValue("com.fasterxml.jackson");
+        }
+
+        @Test
+        void extractsMavenArtifactId() {
+            EnrichedComponent ec = EnrichedComponent.unenriched(baseComponent());
+            assertThat(FieldExtractor.extract(ec, "maven.artifactId")).hasValue("jackson-core");
+        }
+
+        @Test
+        void mavenFieldsEmptyForNpmComponent() {
+            Component npmComp = new Component("axios", "1.7.2", "axios-ref", "library",
+                    null, "pkg:npm/axios@1.7.2", null, "required");
+            EnrichedComponent ec = EnrichedComponent.unenriched(npmComp);
+            assertThat(FieldExtractor.extract(ec, "maven.groupId")).isEmpty();
+            assertThat(FieldExtractor.extract(ec, "maven.artifactId")).isEmpty();
+        }
+
+        @Test
+        void ecosystemEmptyWhenNoPurl() {
+            Component noPurl = new Component("some-lib", "1.0", "ref", "library",
+                    null, null, null, "required");
+            EnrichedComponent ec = EnrichedComponent.unenriched(noPurl);
+            assertThat(FieldExtractor.extract(ec, "ecosystem")).isEmpty();
+        }
+    }
+
+    @Nested
     class EdgeCases {
 
         @Test

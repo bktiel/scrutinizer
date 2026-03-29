@@ -1,0 +1,61 @@
+apiVersion: scrutinizer/v1
+metadata:
+  name: java-baseline
+  version: "1.0"
+  description: >
+    Baseline posture policy for Java/Maven applications.
+    Enforces supply-chain hygiene for Maven ecosystem dependencies:
+    scorecard presence, provenance attestations, and banned packages.
+
+rules:
+  # Skip test-scoped dependencies from evaluation
+  - id: skip-test-deps
+    description: Exclude test-scoped dependencies from posture evaluation
+    field: scope
+    operator: EQ
+    value: test
+    severity: SKIP
+
+  # Every Maven dependency should have a purl
+  - id: require-purl
+    description: All components must have a Package URL for traceability
+    field: purl
+    operator: EXISTS
+    severity: WARN
+
+  # Enforce a minimum Scorecard score for Java deps
+  - id: scorecard-minimum
+    description: Maven dependencies should have an OpenSSF Scorecard score of at least 4.0
+    field: scorecard.score
+    operator: GTE
+    value: "4.0"
+    severity: WARN
+
+  # Require provenance attestation (PGP or Sigstore)
+  - id: require-provenance
+    description: Maven artifacts should have provenance (PGP signature or Sigstore attestation)
+    field: provenance.present
+    operator: EQ
+    value: "true"
+    severity: WARN
+
+  # Ban known vulnerable logging frameworks
+  - id: ban-log4j-core
+    description: log4j-core has a history of critical CVEs — prefer Logback or SLF4J
+    field: name
+    operator: NOT_IN
+    value: "log4j-core,log4j"
+    severity: FAIL
+
+  # Ensure components are recognized types
+  - id: valid-component-types
+    description: Components must be a recognized type
+    field: type
+    operator: IN
+    value: "library,framework,application"
+    severity: WARN
+
+scoring:
+  method: WEIGHTED_AVERAGE
+  passThreshold: 7.0
+  warnThreshold: 4.0

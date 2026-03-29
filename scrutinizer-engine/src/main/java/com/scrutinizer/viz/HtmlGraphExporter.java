@@ -60,6 +60,10 @@ public final class HtmlGraphExporter {
         StringBuilder linksJson = new StringBuilder("[");
         first = true;
         for (DependencyEdge edge : graph.edges()) {
+            // Skip edges referencing nodes not in the components list (e.g. root metadata component)
+            if (!componentMap.containsKey(edge.sourceRef()) || !componentMap.containsKey(edge.targetRef())) {
+                continue;
+            }
             if (!first) linksJson.append(",");
             linksJson.append(String.format(
                     "{\"source\":\"%s\",\"target\":\"%s\"}",
