@@ -15,6 +15,9 @@ public record PostureRunDetailDto(
         String summaryJson,
         Instant runTimestamp,
         Instant createdAt,
+        String reviewStatus,
+        String reviewerNotes,
+        Instant reviewedAt,
         List<ComponentResultDto> componentResults
 ) {
     public record ComponentResultDto(

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -92,6 +93,30 @@ public class PostureRunController {
 
         return findingRepository.findByPostureRunId(id, pageable)
                 .map(mapper::toFindingDto);
+    }
+
+    @PatchMapping("/{id}/review")
+    public PostureRunDetailDto reviewRun(@PathVariable UUID id, @RequestBody ReviewRequest request) {
+        PostureRunEntity entity = postureRunRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Run not found"));
+
+        if (request.reviewStatus() != null && !request.reviewStatus().isBlank()) {
+            String status = request.reviewStatus().toUpperCase();
+            if (!List.of("PENDING", "APPROVED", "REJECTED", "NEEDS_REVIEW").contains(status)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Invalid review status. Must be one of: PENDING, APPROVED, REJECTED, NEEDS_REVIEW");
+            }
+            entity.setReviewStatus(status);
+        }
+
+        if (request.reviewerNotes() != null) {
+            entity.setReviewerNotes(request.reviewerNotes());
+        }
+
+        entity.setReviewedAt(Instant.now());
+        postureRunRepository.save(entity);
+
+        return mapper.toDetailDto(entity);
     }
 
     @GetMapping("/trends")

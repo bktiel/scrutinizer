@@ -41,6 +41,14 @@ public class PostureRunEntity {
     @Column(nullable = false)
     private Instant createdAt;
 
+    @Column(length = 20)
+    private String reviewStatus = "PENDING";
+
+    @Column(columnDefinition = "TEXT")
+    private String reviewerNotes;
+
+    private Instant reviewedAt;
+
     @OneToMany(mappedBy = "postureRun", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("componentRef ASC")
     private List<ComponentResultEntity> componentResults = new ArrayList<>();
@@ -73,4 +81,10 @@ public class PostureRunEntity {
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public List<ComponentResultEntity> getComponentResults() { return componentResults; }
     public void setComponentResults(List<ComponentResultEntity> componentResults) { this.componentResults = componentResults; }
+    public String getReviewStatus() { return reviewStatus; }
+    public void setReviewStatus(String reviewStatus) { this.reviewStatus = reviewStatus; }
+    public String getReviewerNotes() { return reviewerNotes; }
+    public void setReviewerNotes(String reviewerNotes) { this.reviewerNotes = reviewerNotes; }
+    public Instant getReviewedAt() { return reviewedAt; }
+    public void setReviewedAt(Instant reviewedAt) { this.reviewedAt = reviewedAt; }
 }
