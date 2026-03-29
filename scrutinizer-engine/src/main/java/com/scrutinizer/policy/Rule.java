@@ -8,31 +8,40 @@ import java.util.Objects;
  */
 public final class Rule {
 
-    /** Supported comparison operators. */
     public enum Operator {
         EQ, NEQ, GT, GTE, LT, LTE, IN, NOT_IN, EXISTS
     }
 
-    /** Severity / action when a rule triggers. */
     public enum Severity {
         FAIL, WARN, INFO, SKIP
+    }
+
+    public enum Target {
+        ALL, DIRECT, TRANSITIVE
     }
 
     private final String id;
     private final String description;
     private final String field;
     private final Operator operator;
-    private final String value;    // string representation of threshold/expected value
+    private final String value;
     private final Severity severity;
+    private final Target target;
 
     public Rule(String id, String description, String field,
                 Operator operator, String value, Severity severity) {
+        this(id, description, field, operator, value, severity, Target.ALL);
+    }
+
+    public Rule(String id, String description, String field,
+                Operator operator, String value, Severity severity, Target target) {
         this.id = Objects.requireNonNull(id);
         this.description = description != null ? description : "";
         this.field = Objects.requireNonNull(field);
         this.operator = Objects.requireNonNull(operator);
-        this.value = value; // can be null for EXISTS operator
+        this.value = value;
         this.severity = Objects.requireNonNull(severity);
+        this.target = target != null ? target : Target.ALL;
     }
 
     public String id() { return id; }
@@ -41,6 +50,7 @@ public final class Rule {
     public Operator operator() { return operator; }
     public String value() { return value; }
     public Severity severity() { return severity; }
+    public Target target() { return target; }
 
     @Override
     public String toString() {

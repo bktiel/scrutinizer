@@ -1,0 +1,22 @@
+apiVersion: scrutinizer/v1
+kind: PosturePolicy
+metadata:
+  name: target-direct-test
+  version: "1.0"
+
+rules:
+  - id: direct-scorecard-check
+    description: "Direct dependencies must have scorecard >= 6.0"
+    field: scorecard.score
+    operator: gte
+    value: "6.0"
+    severity: FAIL
+    target: DIRECT
+
+  - id: transitive-scorecard-check
+    description: "Transitive dependencies must have scorecard >= 3.0"
+    field: scorecard.score
+    operator: gte
+    value: "3.0"
+    severity: WARN
+    target: TRANSITIVE

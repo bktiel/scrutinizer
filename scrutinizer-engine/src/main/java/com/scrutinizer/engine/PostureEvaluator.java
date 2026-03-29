@@ -2,6 +2,7 @@ package com.scrutinizer.engine;
 
 import com.scrutinizer.enrichment.EnrichedComponent;
 import com.scrutinizer.enrichment.EnrichedDependencyGraph;
+import com.scrutinizer.model.DependencyEdge;
 import com.scrutinizer.policy.PolicyDefinition;
 import com.scrutinizer.policy.Rule;
 import org.springframework.stereotype.Service;
@@ -10,11 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.stream.Collectors;
 
-/**
- * Orchestrates rule evaluation across all components in an enriched graph,
- * producing a complete PostureReport.
- */
 @Service
 public class PostureEvaluator {
 
@@ -24,34 +22,33 @@ public class PostureEvaluator {
         this.ruleEvaluator = ruleEvaluator;
     }
 
-    /**
-     * Evaluate all rules in a policy against every component in the enriched graph.
-     *
-     * @param graph   the enriched dependency graph
-     * @param policy  the policy definition to evaluate
-     * @param sbomJson raw SBOM content for hash computation
-     * @return a complete PostureReport
-     */
     public PostureReport evaluate(EnrichedDependencyGraph graph,
                                    PolicyDefinition policy,
                                    String sbomJson) {
         String sbomHash = computeSha256(sbomJson);
 
+        Set<String> directRefs = computeDirectRefs(graph);
+
         Map<String, List<RuleResult>> resultsByComponent = new LinkedHashMap<>();
 
-        // Evaluate each component against all rules (sorted for determinism)
         List<EnrichedComponent> sortedComponents = graph.components().stream()
                 .sorted(Comparator.comparing(ec -> ec.component().bomRef()))
                 .toList();
 
         for (EnrichedComponent ec : sortedComponents) {
             String ref = ec.component().bomRef();
+            boolean isDirect = directRefs.contains(ref);
             List<RuleResult> componentResults = new ArrayList<>();
 
             for (Rule rule : policy.rules()) {
+                if (!matchesTarget(rule.target(), isDirect)) {
+                    componentResults.add(new RuleResult(ref, rule.id(), RuleResult.Decision.PASS,
+                            "(skipped-target)", rule.value(), rule.description()));
+                    continue;
+                }
+
                 RuleResult result = ruleEvaluator.evaluate(rule, ec);
 
-                // If SKIP, don't add to results — component is excluded by this rule
                 if (result.decision() == RuleResult.Decision.SKIP) {
                     componentResults.clear();
                     componentResults.add(result);
@@ -64,6 +61,25 @@ public class PostureEvaluator {
         }
 
         return PostureReport.create(policy, sbomHash, resultsByComponent);
+    }
+
+    private Set<String> computeDirectRefs(EnrichedDependencyGraph graph) {
+        Optional<String> rootRef = graph.rootRef();
+        if (rootRef.isEmpty()) {
+            return Set.of();
+        }
+        return graph.edges().stream()
+                .filter(edge -> edge.sourceRef().equals(rootRef.get()))
+                .map(DependencyEdge::targetRef)
+                .collect(Collectors.toSet());
+    }
+
+    private boolean matchesTarget(Rule.Target target, boolean isDirect) {
+        return switch (target) {
+            case ALL -> true;
+            case DIRECT -> isDirect;
+            case TRANSITIVE -> !isDirect;
+        };
     }
 
     private static String computeSha256(String input) {

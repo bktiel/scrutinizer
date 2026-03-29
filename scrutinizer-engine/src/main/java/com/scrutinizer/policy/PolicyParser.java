@@ -114,7 +114,19 @@ public class PolicyParser {
                     + "Valid severities: FAIL, WARN, INFO, SKIP");
         }
 
-        return new Rule(id, description, field, operator, value, severity);
+        String targetStr = (String) raw.get("target");
+        Rule.Target target = Rule.Target.ALL;
+        if (targetStr != null) {
+            try {
+                target = Rule.Target.valueOf(targetStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new PolicyParseException(
+                        "Invalid target '" + targetStr + "' in rule '" + id + "'. "
+                        + "Valid targets: ALL, DIRECT, TRANSITIVE");
+            }
+        }
+
+        return new Rule(id, description, field, operator, value, severity, target);
     }
 
     @SuppressWarnings("unchecked")
