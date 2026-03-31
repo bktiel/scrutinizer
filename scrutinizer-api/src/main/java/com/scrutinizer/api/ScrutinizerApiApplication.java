@@ -6,7 +6,14 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@ComponentScan(basePackages = "com.scrutinizer")
+@ComponentScan(basePackages = {
+    "com.scrutinizer.api",
+    "com.scrutinizer.engine",
+    "com.scrutinizer.enrichment",
+    "com.scrutinizer.parser",
+    "com.scrutinizer.policy",
+    "com.scrutinizer.graph"
+})
 @EntityScan(basePackages = "com.scrutinizer.api.entity")
 public class ScrutinizerApiApplication {
 
