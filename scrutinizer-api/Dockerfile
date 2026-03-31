@@ -9,11 +9,12 @@ COPY build.gradle settings.gradle ./
 COPY scrutinizer-engine/ ./scrutinizer-engine/
 COPY scrutinizer-api/ ./scrutinizer-api/
 
-RUN chmod +x gradlew && ./gradlew :scrutinizer-api:bootJar --no-daemon -x test
+RUN chmod +x gradlew && ./gradlew :scrutinizer-api:bootJar --no-daemon -x test \
+    && ls -la scrutinizer-api/build/libs/
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-COPY --from=build /project/scrutinizer-api/build/libs/*.jar /app/scrutinizer-api.jar
+COPY --from=build /project/scrutinizer-api/build/libs/scrutinizer-api-0.1.0-SNAPSHOT.jar /app/scrutinizer-api.jar
 
 ENV SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/scrutinizer
 ENV SPRING_DATASOURCE_USERNAME=scrutinizer

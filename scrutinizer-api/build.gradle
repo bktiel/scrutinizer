@@ -26,3 +26,7 @@ tasks.named('test') {
 springBoot {
     mainClass = 'com.scrutinizer.api.ScrutinizerApiApplication'
 }
+
+jar {
+    enabled = false
+}
