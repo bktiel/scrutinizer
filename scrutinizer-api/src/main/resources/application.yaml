@@ -1,4 +1,6 @@
 spring:
+  main:
+    web-application-type: servlet
   application:
     name: scrutinizer-api
   datasource:
@@ -10,9 +12,6 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
     locations: classpath:db/migration
