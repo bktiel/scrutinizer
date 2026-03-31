@@ -16,6 +16,7 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=build /project/scrutinizer-api/build/libs/scrutinizer-api-0.1.0-SNAPSHOT.jar /app/scrutinizer-api.jar
 
+ENV SPRING_MAIN_WEB_APPLICATION_TYPE=servlet
 ENV SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/scrutinizer
 ENV SPRING_DATASOURCE_USERNAME=scrutinizer
 ENV SPRING_DATASOURCE_PASSWORD=scrutinizer

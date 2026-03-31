@@ -22,6 +22,7 @@ services:
     ports:
       - "8080:8080"
     environment:
+      SPRING_MAIN_WEB_APPLICATION_TYPE: servlet
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/scrutinizer
       SPRING_DATASOURCE_USERNAME: scrutinizer
       SPRING_DATASOURCE_PASSWORD: scrutinizer
