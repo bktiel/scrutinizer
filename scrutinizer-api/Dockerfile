@@ -1,13 +1,15 @@
 # Build context must be the repository root:
 #   docker build -f scrutinizer-api/Dockerfile .
-FROM gradle:8-jdk17 AS build
+FROM eclipse-temurin:17-jdk AS build
 WORKDIR /project
 
+COPY gradlew ./
+COPY gradle/ ./gradle/
 COPY build.gradle settings.gradle ./
 COPY scrutinizer-engine/ ./scrutinizer-engine/
 COPY scrutinizer-api/ ./scrutinizer-api/
 
-RUN gradle :scrutinizer-api:bootJar --no-daemon -x test
+RUN chmod +x gradlew && ./gradlew :scrutinizer-api:bootJar --no-daemon -x test
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

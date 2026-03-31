@@ -3,12 +3,10 @@ package com.scrutinizer.engine;
 import com.scrutinizer.enrichment.EnrichedComponent;
 import com.scrutinizer.enrichment.EnrichedDependencyGraph;
 import com.scrutinizer.enrichment.EnrichmentPipeline;
-import com.scrutinizer.graph.DependencyGraph;
-import com.scrutinizer.policy.Policy;
-import com.scrutinizer.scoring.ScorecardService;
-import com.scrutinizer.provenance.ProvenanceService;
-
-import java.util.List;
+import com.scrutinizer.enrichment.ScorecardService;
+import com.scrutinizer.enrichment.ProvenanceService;
+import com.scrutinizer.model.DependencyGraph;
+import com.scrutinizer.policy.PolicyDefinition;
 
 public class MetricsCollector {
 
@@ -37,7 +35,7 @@ public class MetricsCollector {
         return enriched;
     }
 
-    public PostureReport timedEvaluate(EnrichedDependencyGraph enrichedGraph, Policy policy) {
+    public PostureReport timedEvaluate(EnrichedDependencyGraph enrichedGraph, PolicyDefinition policy) {
         long start = System.currentTimeMillis();
         PostureReport report = postureEvaluator.evaluate(enrichedGraph, policy);
         evaluationDurationMs = System.currentTimeMillis() - start;
@@ -48,10 +46,10 @@ public class MetricsCollector {
         int componentCount = enrichedGraph.components().size();
 
         long withScorecard = enrichedGraph.components().stream()
-                .filter(c -> c.scorecardResult() != null)
+                .filter(c -> c.scorecardResult().isPresent())
                 .count();
         long withProvenance = enrichedGraph.components().stream()
-                .filter(c -> c.provenanceResult() != null && c.provenanceResult().present())
+                .filter(c -> c.provenanceResult().isPresent() && c.provenanceResult().get().isPresent())
                 .count();
 
         double scorecardCoverage = componentCount > 0
