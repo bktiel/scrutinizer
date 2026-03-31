@@ -6,6 +6,10 @@ import com.scrutinizer.api.mapper.PostureRunMapper;
 import com.scrutinizer.api.repository.FindingRepository;
 import com.scrutinizer.api.repository.PostureRunRepository;
 import com.scrutinizer.api.service.PostureRunService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +25,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/runs")
+@Tag(name = "Posture Runs", description = "Evaluate SBOMs against policies and manage posture run results")
 public class PostureRunController {
 
     private final PostureRunService postureRunService;
@@ -39,6 +44,11 @@ public class PostureRunController {
     }
 
     @PostMapping
+    @Operation(summary = "Trigger a posture evaluation",
+               description = "Parses the SBOM, enriches dependencies with scorecard and provenance signals, "
+                       + "evaluates against the policy, and persists the result.")
+    @ApiResponse(responseCode = "201", description = "Evaluation completed and persisted")
+    @ApiResponse(responseCode = "400", description = "Invalid SBOM, policy, or application name")
     public ResponseEntity<PostureRunSummaryDto> createRun(@RequestBody CreateRunRequest request) {
         try {
             PostureRunEntity run = postureRunService.executeAndPersist(
@@ -53,10 +63,11 @@ public class PostureRunController {
     }
 
     @GetMapping
+    @Operation(summary = "List posture runs", description = "Paginated list of run summaries, optionally filtered by application name.")
     public Page<PostureRunSummaryDto> listRuns(
-            @RequestParam(required = false) String applicationName,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @Parameter(description = "Filter by application name") @RequestParam(required = false) String applicationName,
+            @Parameter(description = "Page number (zero-based)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
 
@@ -71,6 +82,9 @@ public class PostureRunController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get run detail", description = "Full detail for a single run including component results and findings.")
+    @ApiResponse(responseCode = "200", description = "Run found")
+    @ApiResponse(responseCode = "404", description = "Run not found")
     public PostureRunDetailDto getRunDetail(@PathVariable UUID id) {
         PostureRunEntity entity = postureRunRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Run not found"));
@@ -78,11 +92,12 @@ public class PostureRunController {
     }
 
     @GetMapping("/{id}/findings")
+    @Operation(summary = "Get findings for a run", description = "Paginated findings list, optionally filtered by decision (PASS, WARN, FAIL).")
     public Page<FindingDto> getRunFindings(
             @PathVariable UUID id,
-            @RequestParam(required = false) String decision,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size) {
+            @Parameter(description = "Filter by decision: PASS, WARN, FAIL") @RequestParam(required = false) String decision,
+            @Parameter(description = "Page number (zero-based)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size") @RequestParam(defaultValue = "50") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
 
@@ -96,6 +111,11 @@ public class PostureRunController {
     }
 
     @PatchMapping("/{id}/review")
+    @Operation(summary = "Review a posture run",
+               description = "Set review status and optional reviewer notes. Valid statuses: PENDING, APPROVED, REJECTED, NEEDS_REVIEW.")
+    @ApiResponse(responseCode = "200", description = "Review updated")
+    @ApiResponse(responseCode = "400", description = "Invalid review status")
+    @ApiResponse(responseCode = "404", description = "Run not found")
     public PostureRunDetailDto reviewRun(@PathVariable UUID id, @RequestBody ReviewRequest request) {
         PostureRunEntity entity = postureRunRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Run not found"));
@@ -120,7 +140,9 @@ public class PostureRunController {
     }
 
     @GetMapping("/trends")
-    public List<TrendDataPoint> getTrends(@RequestParam String applicationName) {
+    @Operation(summary = "Get score trends", description = "Posture score trend data for a single application, ordered chronologically.")
+    public List<TrendDataPoint> getTrends(
+            @Parameter(description = "Application name", required = true) @RequestParam String applicationName) {
         return postureRunRepository
                 .findByApplicationNameOrderByRunTimestampAsc(applicationName)
                 .stream()
