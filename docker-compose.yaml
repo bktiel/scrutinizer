@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: scrutinizer
+      POSTGRES_USER: scrutinizer
+      POSTGRES_PASSWORD: scrutinizer
+    ports:
+      - "5450:5432"
+    volumes:
+      - scrutinizer-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scrutinizer"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: scrutinizer-api/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/scrutinizer
+      SPRING_DATASOURCE_USERNAME: scrutinizer
+      SPRING_DATASOURCE_PASSWORD: scrutinizer
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  dashboard:
+    build:
+      context: scrutinizer-dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+volumes:
+  scrutinizer-pgdata:

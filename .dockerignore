@@ -1,0 +1,10 @@
+.gradle/
+build/
+.git/
+node_modules/
+*.md
+scrutinizer-dashboard/
+reference-env/
+validation/
+ref-app-1/
+.claude/
