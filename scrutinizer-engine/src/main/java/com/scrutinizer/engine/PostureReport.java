@@ -144,7 +144,7 @@ public final class PostureReport {
 
     /** Counts of each decision type. */
     public record Summary(int pass, int warn, int fail, int info, int skip, int total) {
-        Map<String, Object> toMap() {
+        public Map<String, Object> toMap() {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("total", total);
             m.put("pass", pass);
