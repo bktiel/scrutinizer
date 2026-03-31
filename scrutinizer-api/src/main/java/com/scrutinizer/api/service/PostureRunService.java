@@ -1,9 +1,12 @@
 package com.scrutinizer.api.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scrutinizer.api.entity.ComponentResultEntity;
 import com.scrutinizer.api.entity.FindingEntity;
+import com.scrutinizer.api.entity.PolicyEntity;
 import com.scrutinizer.api.entity.PostureRunEntity;
+import com.scrutinizer.api.repository.PolicyRepository;
 import com.scrutinizer.api.repository.PostureRunRepository;
 import com.scrutinizer.engine.Finding;
 import com.scrutinizer.engine.PostureEvaluator;
@@ -19,10 +22,8 @@ import com.scrutinizer.policy.PolicyParser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
@@ -33,41 +34,52 @@ public class PostureRunService {
     private final EnrichmentPipeline enrichmentPipeline;
     private final PostureEvaluator postureEvaluator;
     private final PostureRunRepository postureRunRepository;
+    private final PolicyRepository policyRepository;
     private final ObjectMapper objectMapper;
 
     public PostureRunService(SbomParser sbomParser, PolicyParser policyParser,
                               EnrichmentPipeline enrichmentPipeline,
                               PostureEvaluator postureEvaluator,
-                              PostureRunRepository postureRunRepository) {
+                              PostureRunRepository postureRunRepository,
+                              PolicyRepository policyRepository) {
         this.sbomParser = sbomParser;
         this.policyParser = policyParser;
         this.enrichmentPipeline = enrichmentPipeline;
         this.postureEvaluator = postureEvaluator;
         this.postureRunRepository = postureRunRepository;
+        this.policyRepository = policyRepository;
         this.objectMapper = new ObjectMapper();
     }
 
     @Transactional
-    public PostureRunEntity executeAndPersist(String applicationName,
-                                               Path sbomPath,
-                                               Path policyPath) throws IOException {
-        String sbomJson = Files.readString(sbomPath);
-        DependencyGraph graph = sbomParser.parseFile(sbomPath);
+    public PostureRunEntity executeWithUpload(String applicationName,
+                                               String sbomJson,
+                                               UUID policyId) {
+        PolicyEntity policyEntity = policyRepository.findById(policyId)
+                .orElseThrow(() -> new IllegalArgumentException("Policy not found: " + policyId));
 
-        PolicyDefinition policy;
-        try (FileInputStream fis = new FileInputStream(policyPath.toFile())) {
-            policy = policyParser.parse(fis);
+        JsonNode sbomRoot;
+        try {
+            sbomRoot = objectMapper.readTree(sbomJson);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid SBOM JSON: " + e.getMessage());
         }
+
+        DependencyGraph graph = sbomParser.parse(sbomRoot);
+
+        PolicyDefinition policy = policyParser.parse(
+                new ByteArrayInputStream(policyEntity.getPolicyYaml().getBytes(StandardCharsets.UTF_8)));
 
         EnrichedDependencyGraph enrichedGraph = enrichmentPipeline.enrich(graph);
         PostureReport report = postureEvaluator.evaluate(enrichedGraph, policy, sbomJson);
 
-        return persistReport(applicationName, report, enrichedGraph);
+        return persistReport(applicationName, report, enrichedGraph, policyEntity.getId());
     }
 
     private PostureRunEntity persistReport(String applicationName,
                                             PostureReport report,
-                                            EnrichedDependencyGraph graph) {
+                                            EnrichedDependencyGraph graph,
+                                            UUID policyId) {
         PostureRunEntity run = new PostureRunEntity();
         run.setApplicationName(applicationName);
         run.setSbomHash(report.sbomHash());
@@ -75,6 +87,7 @@ public class PostureRunService {
         run.setPolicyVersion(report.policyVersion());
         run.setOverallDecision(report.overallDecision().name());
         run.setPostureScore(report.postureScore());
+        run.setPolicyId(policyId);
 
         try {
             run.setSummaryJson(objectMapper.writeValueAsString(report.summary().toMap()));

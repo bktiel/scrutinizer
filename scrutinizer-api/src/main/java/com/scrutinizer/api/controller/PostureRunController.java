@@ -14,11 +14,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.nio.file.Path;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -43,19 +45,19 @@ public class PostureRunController {
         this.mapper = mapper;
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Trigger a posture evaluation",
-               description = "Parses the SBOM, enriches dependencies with scorecard and provenance signals, "
-                       + "evaluates against the policy, and persists the result.")
+               description = "Upload a CycloneDX SBOM JSON file and select a stored policy by ID. "
+                       + "The engine parses, enriches, evaluates, and persists the result.")
     @ApiResponse(responseCode = "201", description = "Evaluation completed and persisted")
-    @ApiResponse(responseCode = "400", description = "Invalid SBOM, policy, or application name")
-    public ResponseEntity<PostureRunSummaryDto> createRun(@RequestBody CreateRunRequest request) {
+    @ApiResponse(responseCode = "400", description = "Invalid SBOM or policy ID")
+    public ResponseEntity<PostureRunSummaryDto> createRun(
+            @Parameter(description = "CycloneDX SBOM JSON file") @RequestPart("sbom") MultipartFile sbomFile,
+            @Parameter(description = "Application name") @RequestParam String applicationName,
+            @Parameter(description = "Policy ID to evaluate against") @RequestParam UUID policyId) {
         try {
-            PostureRunEntity run = postureRunService.executeAndPersist(
-                    request.applicationName(),
-                    Path.of(request.sbomPath()),
-                    Path.of(request.policyPath())
-            );
+            String sbomJson = new String(sbomFile.getBytes(), StandardCharsets.UTF_8);
+            PostureRunEntity run = postureRunService.executeWithUpload(applicationName, sbomJson, policyId);
             return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toSummaryDto(run));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());

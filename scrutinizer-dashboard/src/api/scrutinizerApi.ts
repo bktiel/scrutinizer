@@ -21,6 +21,11 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   return res.json()
 }
 
+async function del(path: string): Promise<void> {
+  const res = await fetch(`${BASE}${path}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+}
+
 export interface PostureRunSummary {
   id: string
   applicationName: string
@@ -85,6 +90,25 @@ export interface Page<T> {
   size: number
 }
 
+export interface Policy {
+  id: string
+  name: string
+  version: string
+  description: string | null
+  policyYaml: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PolicyHistory {
+  id: string
+  policyYaml: string
+  changedBy: string | null
+  changedAt: string
+}
+
+// --- Runs ---
+
 export async function listRuns(page = 0, size = 20, applicationName?: string): Promise<Page<PostureRunSummary>> {
   const params: Record<string, string | number> = { page, size }
   if (applicationName) params.applicationName = applicationName
@@ -105,6 +129,48 @@ export async function getTrends(applicationName: string): Promise<TrendDataPoint
   return get('/runs/trends', { applicationName })
 }
 
-export async function createRun(applicationName: string, sbomPath: string, policyPath: string): Promise<PostureRunSummary> {
-  return post('/runs', { applicationName, sbomPath, policyPath })
+export async function createRun(sbomFile: File, applicationName: string, policyId: string): Promise<PostureRunSummary> {
+  const form = new FormData()
+  form.append('sbom', sbomFile)
+  form.append('applicationName', applicationName)
+  form.append('policyId', policyId)
+  const res = await fetch(`${BASE}/runs`, { method: 'POST', body: form })
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+  return res.json()
+}
+
+// --- Policies ---
+
+export async function listPolicies(): Promise<Policy[]> {
+  return get('/policies')
+}
+
+export async function getPolicy(id: string): Promise<Policy> {
+  return get(`/policies/${id}`)
+}
+
+export async function uploadPolicy(file: File, description?: string): Promise<Policy> {
+  const form = new FormData()
+  form.append('file', file)
+  if (description) form.append('description', description)
+  const res = await fetch(`${BASE}/policies`, { method: 'POST', body: form })
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+  return res.json()
+}
+
+export async function updatePolicy(id: string, file: File, description?: string): Promise<Policy> {
+  const form = new FormData()
+  form.append('file', file)
+  if (description) form.append('description', description)
+  const res = await fetch(`${BASE}/policies/${id}`, { method: 'PUT', body: form })
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+  return res.json()
+}
+
+export async function deletePolicy(id: string): Promise<void> {
+  return del(`/policies/${id}`)
+}
+
+export async function getPolicyHistory(id: string): Promise<PolicyHistory[]> {
+  return get(`/policies/${id}/history`)
 }
