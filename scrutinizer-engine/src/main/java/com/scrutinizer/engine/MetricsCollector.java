@@ -35,9 +35,9 @@ public class MetricsCollector {
         return enriched;
     }
 
-    public PostureReport timedEvaluate(EnrichedDependencyGraph enrichedGraph, PolicyDefinition policy) {
+    public PostureReport timedEvaluate(EnrichedDependencyGraph enrichedGraph, PolicyDefinition policy, String sbomJson) {
         long start = System.currentTimeMillis();
-        PostureReport report = postureEvaluator.evaluate(enrichedGraph, policy);
+        PostureReport report = postureEvaluator.evaluate(enrichedGraph, policy, sbomJson);
         evaluationDurationMs = System.currentTimeMillis() - start;
         return report;
     }
