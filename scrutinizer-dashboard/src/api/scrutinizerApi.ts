@@ -1,6 +1,25 @@
-import axios from 'axios'
+const BASE = '/api/v1'
 
-const api = axios.create({ baseURL: '/api/v1' })
+async function get<T>(path: string, params?: Record<string, string | number>): Promise<T> {
+  const url = new URL(path, window.location.origin)
+  url.pathname = BASE + url.pathname
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)))
+  }
+  const res = await fetch(url.toString())
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+  return res.json()
+}
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+  return res.json()
+}
 
 export interface PostureRunSummary {
   id: string
@@ -69,28 +88,23 @@ export interface Page<T> {
 export async function listRuns(page = 0, size = 20, applicationName?: string): Promise<Page<PostureRunSummary>> {
   const params: Record<string, string | number> = { page, size }
   if (applicationName) params.applicationName = applicationName
-  const { data } = await api.get('/runs', { params })
-  return data
+  return get('/runs', params)
 }
 
 export async function getRunDetail(id: string): Promise<PostureRunDetail> {
-  const { data } = await api.get(`/runs/${id}`)
-  return data
+  return get(`/runs/${id}`)
 }
 
 export async function getRunFindings(id: string, page = 0, size = 50, decision?: string): Promise<Page<Finding>> {
   const params: Record<string, string | number> = { page, size }
   if (decision) params.decision = decision
-  const { data } = await api.get(`/runs/${id}/findings`, { params })
-  return data
+  return get(`/runs/${id}/findings`, params)
 }
 
 export async function getTrends(applicationName: string): Promise<TrendDataPoint[]> {
-  const { data } = await api.get('/runs/trends', { params: { applicationName } })
-  return data
+  return get('/runs/trends', { applicationName })
 }
 
 export async function createRun(applicationName: string, sbomPath: string, policyPath: string): Promise<PostureRunSummary> {
-  const { data } = await api.post('/runs', { applicationName, sbomPath, policyPath })
-  return data
+  return post('/runs', { applicationName, sbomPath, policyPath })
 }
