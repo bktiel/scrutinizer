@@ -24,7 +24,7 @@ export default function SignalBadge({ value, type }: SignalBadgeProps) {
   }
 
   if (type === 'boolean') {
-    const isTrue = value === true || value === 'true'
+    const isTrue = String(value) === 'true'
     return <Chip label={isTrue ? '\u2713' : '\u2717'} color={isTrue ? 'success' : 'error'} size="small" />
   }
 

@@ -29,7 +29,7 @@ const columns: GridColDef[] = [
     field: 'runTimestamp',
     headerName: 'Evaluated',
     width: 180,
-    valueFormatter: (value: string) => new Date(value).toLocaleString(),
+    valueFormatter: (params: { value: string }) => new Date(params.value).toLocaleString(),
   },
 ]
 

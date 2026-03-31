@@ -31,7 +31,7 @@ const columns: GridColDef[] = [
     field: 'findingCount',
     headerName: 'Findings',
     width: 90,
-    valueGetter: (_value: unknown, row: ComponentResult) => row.findings?.length ?? 0,
+    valueGetter: (params: { row: ComponentResult }) => params.row.findings?.length ?? 0,
   },
 ]
 
