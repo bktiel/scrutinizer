@@ -81,7 +81,7 @@ const TARGET_DESCRIPTIONS: Record<string, string> = {
 
 export default function RuleCard({ rule, onChange, onDelete }: RuleCardProps) {
   const handleFieldChange = (value: string) => {
-    onChange({ ...rule, field: value })
+    onChange({ ...rule, field: value as any })
   }
 
   const handleOperatorChange = (value: string) => {

@@ -141,7 +141,7 @@ export default function ProjectsPage() {
           <Select
             label="Sort By"
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
+            onChange={(e) => setSortBy(e.target.value as 'name' | 'score' | 'lastRun')}
           >
             <MenuItem value="name">Name</MenuItem>
             <MenuItem value="score">Latest Score</MenuItem>

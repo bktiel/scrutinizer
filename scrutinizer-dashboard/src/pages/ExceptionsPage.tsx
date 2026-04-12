@@ -543,7 +543,7 @@ export default function ExceptionsPage() {
             </Typography>
             <RadioGroup
               value={formData.scope}
-              onChange={(e) => setFormData({ ...formData, scope: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, scope: e.target.value as 'PROJECT' | 'GLOBAL' })}
               row
             >
               <FormControlLabel

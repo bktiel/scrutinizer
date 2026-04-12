@@ -287,9 +287,7 @@ public class ProjectController {
             entity.getPolicyVersion(),
             entity.getOverallDecision(),
             entity.getPostureScore(),
-            entity.getRunTimestamp(),
-            entity.getCreatedAt(),
-            entity.getReviewStatus()
+            entity.getRunTimestamp()
         );
     }
 
@@ -309,7 +307,8 @@ public class ProjectController {
         return new TrendDataPoint(
             entity.getRunTimestamp(),
             entity.getPostureScore(),
-            entity.getOverallDecision()
+            entity.getOverallDecision(),
+            entity.getPolicyVersion()
         );
     }
 }

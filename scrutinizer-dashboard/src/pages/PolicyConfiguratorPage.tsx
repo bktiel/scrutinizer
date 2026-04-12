@@ -413,7 +413,7 @@ export default function PolicyConfiguratorPage() {
                     ...form,
                     scoring: {
                       ...form.scoring,
-                      method: e.target.value as any,
+                      method: e.target.value as 'WEIGHTED_AVERAGE' | 'PASS_FAIL' | 'WORST_CASE',
                     },
                   })
                 }

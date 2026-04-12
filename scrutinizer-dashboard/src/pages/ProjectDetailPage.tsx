@@ -9,6 +9,7 @@ import {
   Grid,
   Card,
   CardContent,
+  CardActions,
   Button,
   Dialog,
   DialogTitle,
@@ -67,6 +68,7 @@ export default function ProjectDetailPage() {
   const [tab, setTab] = useState(0)
   const [exceptionDialogOpen, setExceptionDialogOpen] = useState(false)
   const [policyDialogOpen, setPolicyDialogOpen] = useState(false)
+  const [policyYamlPreviewOpen, setPolicyYamlPreviewOpen] = useState(false)
   const [exceptionForm, setExceptionForm] = useState({
     ruleId: '',
     packageName: '',
@@ -393,7 +395,21 @@ export default function ProjectDetailPage() {
                       {currentPolicy.description}
                     </Typography>
                   )}
-                  <PolicyYamlPreview yaml={currentPolicy.policyYaml} />
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={() => setPolicyYamlPreviewOpen(true)}
+                    sx={{ mt: 1 }}
+                  >
+                    View Policy YAML
+                  </Button>
+                  {currentPolicy && (
+                    <PolicyYamlPreview
+                      open={policyYamlPreviewOpen}
+                      yaml={currentPolicy.policyYaml}
+                      onClose={() => setPolicyYamlPreviewOpen(false)}
+                    />
+                  )}
                 </Box>
               ) : (
                 <Typography color="text.secondary">No policy assigned</Typography>
