@@ -1,0 +1,118 @@
+apiVersion: scrutinizer/v1
+kind: Policy
+metadata:
+  name: npm-baseline
+  version: "1.0"
+  description: "Baseline posture policy for Node.js/npm applications"
+  created: "2026-04-12T10:00:00Z"
+  ecosystem: "npm"
+
+rules:
+  - id: skip-dev-deps
+    description: "Exclude devDependencies from evaluation"
+    severity: SKIP
+    condition:
+      field: scope
+      operator: EQ
+      value: "optional"
+
+  - id: require-purl
+    description: "All packages must have a valid Package URL"
+    severity: WARN
+    condition:
+      field: purl
+      operator: EXISTS
+
+  - id: scorecard-minimum
+    description: "Packages should have an OpenSSF Scorecard score of at least 4.0"
+    severity: WARN
+    condition:
+      field: scorecard.score
+      operator: GTE
+      value: "4.0"
+
+  - id: require-provenance
+    description: "Packages should have provenance attestation (npm Sigstore or equivalent)"
+    severity: WARN
+    condition:
+      field: provenance.present
+      operator: EQ
+      value: "true"
+
+  - id: ban-event-stream
+    description: "Ban event-stream due to documented supply-chain attack"
+    severity: FAIL
+    condition:
+      field: name
+      operator: EQ
+      value: "event-stream"
+
+  - id: ban-colors
+    description: "Ban colors due to maintainer sabotage"
+    severity: FAIL
+    condition:
+      field: name
+      operator: EQ
+      value: "colors"
+
+  - id: ban-faker
+    description: "Ban faker due to maintainer sabotage"
+    severity: FAIL
+    condition:
+      field: name
+      operator: EQ
+      value: "faker"
+
+  - id: moment-deprecated
+    description: "Flag deprecated moment.js library (should migrate to alternatives like date-fns)"
+    severity: WARN
+    condition:
+      field: name
+      operator: EQ
+      value: "moment"
+
+  - id: allow-well-known
+    description: "Allow well-known production packages with good provenance"
+    severity: INFO
+    condition:
+      field: name
+      operator: IN
+      value:
+        - express
+        - lodash
+        - axios
+        - jsonwebtoken
+        - bcryptjs
+        - helmet
+        - cors
+        - dotenv
+        - winston
+        - uuid
+
+scoring:
+  method: WEIGHTED_AVERAGE
+  weights:
+    fail: 0.0
+    warn: 0.3
+    info: 0.7
+  passThreshold: 7.0
+  warnThreshold: 4.0
+  minComponentScore: 2.0
+
+compliance:
+  breakingRules:
+    - ban-event-stream
+    - ban-colors
+    - ban-faker
+  warningRules:
+    - scorecard-minimum
+    - require-provenance
+    - moment-deprecated
+  infoRules:
+    - require-purl
+    - allow-well-known
+
+reportingOptions:
+  includeScorecardDetails: true
+  includeProvenanceDetails: true
+  groupByViolationSeverity: true

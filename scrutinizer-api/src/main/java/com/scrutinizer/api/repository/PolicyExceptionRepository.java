@@ -20,4 +20,6 @@ public interface PolicyExceptionRepository extends JpaRepository<PolicyException
     List<PolicyExceptionEntity> findByProjectIdAndStatusAndExpiresAtAfter(UUID projectId, String status, Instant now);
 
     Page<PolicyExceptionEntity> findByProjectIdAndStatus(UUID projectId, String status, Pageable pageable);
+
+    List<PolicyExceptionEntity> findByScopeAndStatus(String scope, String status);
 }

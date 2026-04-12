@@ -49,21 +49,18 @@ public class PostureRunController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Trigger a posture evaluation",
                description = "Upload a CycloneDX SBOM JSON file and select a stored policy by ID. "
-                       + "The engine parses, enriches, evaluates, and persists the result.")
+                       + "The engine parses, enriches, evaluates, and persists the result. "
+                       + "Optionally provide a project ID to load project-scoped policy exceptions.")
     @ApiResponse(responseCode = "201", description = "Evaluation completed and persisted")
     @ApiResponse(responseCode = "400", description = "Invalid SBOM or policy ID")
     public ResponseEntity<PostureRunSummaryDto> createRun(
             @Parameter(description = "CycloneDX SBOM JSON file") @RequestPart("sbom") MultipartFile sbomFile,
             @Parameter(description = "Application name") @RequestParam String applicationName,
             @Parameter(description = "Policy ID to evaluate against") @RequestParam UUID policyId,
-            @Parameter(description = "Optional project ID to associate run with a project") @RequestParam(required = false) UUID projectId) {
+            @Parameter(description = "Optional project ID to associate run with a project and load project-scoped exceptions") @RequestParam(required = false) UUID projectId) {
         try {
             String sbomJson = new String(sbomFile.getBytes(), StandardCharsets.UTF_8);
-            PostureRunEntity run = postureRunService.executeWithUpload(applicationName, sbomJson, policyId);
-            if (projectId != null) {
-                run.setProjectId(projectId);
-                run = postureRunRepository.save(run);
-            }
+            PostureRunEntity run = postureRunService.executeWithUpload(applicationName, sbomJson, policyId, projectId);
             return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toSummaryDto(run));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());

@@ -1,0 +1,162 @@
+{
+  "id": "experiment-2",
+  "title": "Experiment 2: Provenance/SLSA Coverage Accuracy",
+  "description": "Ground truth for evaluating Scrutinizer's ability to accurately assess OpenSSF Scorecard scores and provenance/SLSA attestation presence for npm packages",
+  "testDate": "2026-04-12T11:00:00Z",
+  "policy": "npm-baseline",
+  "expectedPassCount": 5,
+  "expectedFailCount": 5,
+  "packages": [
+    {
+      "rank": 1,
+      "name": "express",
+      "version": "4.18.2",
+      "purl": "pkg:npm/express@4.18.2",
+      "expectedDecision": "PASS",
+      "rationale": "Express 4.18.2 is well-maintained with a high OpenSSF Scorecard (>4.0), active development, and npm Sigstore provenance attestation available since npm provenance rollout.",
+      "details": {
+        "scorecard_expected_range": [7.0, 8.5],
+        "provenance_expected": true,
+        "maintenance_status": "actively maintained"
+      }
+    },
+    {
+      "rank": 2,
+      "name": "lodash",
+      "version": "4.17.21",
+      "purl": "pkg:npm/lodash@4.17.21",
+      "expectedDecision": "PASS",
+      "rationale": "Lodash 4.17.21 is widely used with consistent maintenance. OpenSSF Scorecard should be >4.0 (typically 6.0+). Moderate provenance coverage.",
+      "details": {
+        "scorecard_expected_range": [6.0, 7.5],
+        "provenance_expected": true,
+        "maintenance_status": "maintained"
+      }
+    },
+    {
+      "rank": 3,
+      "name": "helmet",
+      "version": "7.1.0",
+      "purl": "pkg:npm/helmet@7.1.0",
+      "expectedDecision": "PASS",
+      "rationale": "Helmet is a security-focused middleware with high maintenance standards, good OpenSSF Scorecard (>4.0), and documented provenance.",
+      "details": {
+        "scorecard_expected_range": [7.5, 8.5],
+        "provenance_expected": true,
+        "maintenance_status": "actively maintained"
+      }
+    },
+    {
+      "rank": 4,
+      "name": "cors",
+      "version": "2.8.5",
+      "purl": "pkg:npm/cors@2.8.5",
+      "expectedDecision": "PASS",
+      "rationale": "CORS middleware is stable and well-maintained despite being older (v2.8). OpenSSF Scorecard should be 4.0+. Basic npm provenance available.",
+      "details": {
+        "scorecard_expected_range": [4.0, 6.5],
+        "provenance_expected": true,
+        "maintenance_status": "maintained"
+      }
+    },
+    {
+      "rank": 5,
+      "name": "dotenv",
+      "version": "16.3.1",
+      "purl": "pkg:npm/dotenv@16.3.1",
+      "expectedDecision": "PASS",
+      "rationale": "Dotenv is actively maintained with good OpenSSF Scorecard (>4.0) and npm Sigstore provenance coverage.",
+      "details": {
+        "scorecard_expected_range": [6.5, 8.0],
+        "provenance_expected": true,
+        "maintenance_status": "actively maintained"
+      }
+    },
+    {
+      "rank": 6,
+      "name": "moment",
+      "version": "2.29.4",
+      "purl": "pkg:npm/moment@2.29.4",
+      "expectedDecision": "FAIL",
+      "rationale": "Moment 2.29.4 is deprecated and in legacy status. Scorecard will be <4.0 due to lack of active maintenance, security fixes, and low development activity. Should fail scorecard.score >= 4.0 rule.",
+      "details": {
+        "scorecard_expected_range": [1.0, 3.5],
+        "provenance_expected": false,
+        "maintenance_status": "deprecated/legacy"
+      }
+    },
+    {
+      "rank": 7,
+      "name": "event-stream",
+      "version": "4.0.1",
+      "purl": "pkg:npm/event-stream@4.0.1",
+      "expectedDecision": "FAIL",
+      "rationale": "Event-stream v4.0.1 has a historically documented supply-chain attack (2018-2019). Scorecard will be low due to security concerns and history. May be on security blocklist.",
+      "details": {
+        "scorecard_expected_range": [0.0, 2.5],
+        "provenance_expected": false,
+        "maintenance_status": "compromised history"
+      }
+    },
+    {
+      "rank": 8,
+      "name": "colors",
+      "version": "1.4.0",
+      "purl": "pkg:npm/colors@1.4.0",
+      "expectedDecision": "FAIL",
+      "rationale": "Colors v1.4.0 was sabotaged by its maintainer (2021), introducing obfuscated code that prints messages. Scorecard will be low or unavailable. Clear security/trust issue.",
+      "details": {
+        "scorecard_expected_range": [0.0, 2.0],
+        "provenance_expected": false,
+        "maintenance_status": "sabotaged/untrusted"
+      }
+    },
+    {
+      "rank": 9,
+      "name": "faker",
+      "version": "6.6.6",
+      "purl": "pkg:npm/faker@6.6.6",
+      "expectedDecision": "FAIL",
+      "rationale": "Faker v6.6.6 was sabotaged by maintainer (2022), also removing core functionality and mass zeroing. Scorecard unavailable or <2.0. Clear trust failure.",
+      "details": {
+        "scorecard_expected_range": [0.0, 1.5],
+        "provenance_expected": false,
+        "maintenance_status": "sabotaged/untrusted"
+      }
+    },
+    {
+      "rank": 10,
+      "name": "ua-parser-js",
+      "version": "0.7.31",
+      "purl": "pkg:npm/ua-parser-js@0.7.31",
+      "expectedDecision": "FAIL",
+      "rationale": "UA-parser-js v0.7.31 had malicious code injection in versions 0.7.28+ (2021-2022). Scorecard will be low due to security history. Trust issue.",
+      "details": {
+        "scorecard_expected_range": [0.0, 3.0],
+        "provenance_expected": false,
+        "maintenance_status": "compromised/high-risk"
+      }
+    }
+  ],
+  "policyRules": [
+    {
+      "id": "scorecard-minimum",
+      "description": "Packages must have OpenSSF Scorecard >= 4.0",
+      "expectedPasses": ["express", "lodash", "helmet", "cors", "dotenv"],
+      "expectedFails": ["moment", "event-stream", "colors", "faker", "ua-parser-js"]
+    },
+    {
+      "id": "ban-deprecated",
+      "description": "Ban known deprecated/compromised packages",
+      "expectedFails": ["event-stream", "colors", "faker"]
+    }
+  ],
+  "validationNotes": [
+    "Scorecard scores must be retrieved from OpenSSF Scorecard API or cached database as of 2026-04-12",
+    "Provenance attestation should be checked via npm registry metadata or Sigstore transparency logs",
+    "Pass threshold for policy: 7.0 out of 10",
+    "Warn threshold for policy: 4.0 out of 10",
+    "All FAIL packages should trigger npm-baseline policy violations",
+    "All PASS packages should either pass all rules or only trigger WARN-level violations"
+  ]
+}

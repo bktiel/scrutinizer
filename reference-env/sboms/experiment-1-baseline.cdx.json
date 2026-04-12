@@ -1,0 +1,145 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "serialNumber": "urn:uuid:b3c5e7f9-2a4d-4e6f-9a3b-5c8e1f7a2d4e",
+  "metadata": {
+    "timestamp": "2026-04-12T11:15:00Z",
+    "component": {
+      "type": "application",
+      "name": "experiment-1-baseline",
+      "version": "1.0.0",
+      "bom-ref": "experiment-1-baseline@1.0.0",
+      "purl": "pkg:npm/experiment-1-baseline@1.0.0"
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "express",
+      "version": "4.18.2",
+      "bom-ref": "pkg:npm/express@4.18.2",
+      "purl": "pkg:npm/express@4.18.2",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "lodash",
+      "version": "4.17.21",
+      "bom-ref": "pkg:npm/lodash@4.17.21",
+      "purl": "pkg:npm/lodash@4.17.21",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "axios",
+      "version": "1.6.0",
+      "bom-ref": "pkg:npm/axios@1.6.0",
+      "purl": "pkg:npm/axios@1.6.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "helmet",
+      "version": "7.1.0",
+      "bom-ref": "pkg:npm/helmet@7.1.0",
+      "purl": "pkg:npm/helmet@7.1.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "cors",
+      "version": "2.8.5",
+      "bom-ref": "pkg:npm/cors@2.8.5",
+      "purl": "pkg:npm/cors@2.8.5",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "dotenv",
+      "version": "16.3.1",
+      "bom-ref": "pkg:npm/dotenv@16.3.1",
+      "purl": "pkg:npm/dotenv@16.3.1",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "uuid",
+      "version": "9.0.0",
+      "bom-ref": "pkg:npm/uuid@9.0.0",
+      "purl": "pkg:npm/uuid@9.0.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "chalk",
+      "version": "4.1.2",
+      "bom-ref": "pkg:npm/chalk@4.1.2",
+      "purl": "pkg:npm/chalk@4.1.2",
+      "scope": "required"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "experiment-1-baseline@1.0.0",
+      "depends": [
+        {
+          "ref": "pkg:npm/express@4.18.2"
+        },
+        {
+          "ref": "pkg:npm/lodash@4.17.21"
+        },
+        {
+          "ref": "pkg:npm/axios@1.6.0"
+        },
+        {
+          "ref": "pkg:npm/helmet@7.1.0"
+        },
+        {
+          "ref": "pkg:npm/cors@2.8.5"
+        },
+        {
+          "ref": "pkg:npm/dotenv@16.3.1"
+        },
+        {
+          "ref": "pkg:npm/uuid@9.0.0"
+        },
+        {
+          "ref": "pkg:npm/chalk@4.1.2"
+        }
+      ]
+    },
+    {
+      "ref": "pkg:npm/express@4.18.2",
+      "depends": []
+    },
+    {
+      "ref": "pkg:npm/lodash@4.17.21",
+      "depends": []
+    },
+    {
+      "ref": "pkg:npm/axios@1.6.0",
+      "depends": []
+    },
+    {
+      "ref": "pkg:npm/helmet@7.1.0",
+      "depends": []
+    },
+    {
+      "ref": "pkg:npm/cors@2.8.5",
+      "depends": []
+    },
+    {
+      "ref": "pkg:npm/dotenv@16.3.1",
+      "depends": []
+    },
+    {
+      "ref": "pkg:npm/uuid@9.0.0",
+      "depends": []
+    },
+    {
+      "ref": "pkg:npm/chalk@4.1.2",
+      "depends": []
+    }
+  ]
+}

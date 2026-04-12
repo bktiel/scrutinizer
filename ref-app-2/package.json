@@ -1,0 +1,32 @@
+{
+  "name": "ref-app-2-supply-chain-demo",
+  "version": "1.0.0",
+  "description": "Reference application for Scrutinizer supply-chain posture experiments",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "generate-sbom": "npx @cyclonedx/cyclonedx-npm --output-file sbom.json"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "lodash": "^4.17.21",
+    "axios": "^1.6.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "winston": "^3.11.0",
+    "mongoose": "^8.0.0",
+    "pg": "^8.11.3",
+    "redis": "^4.6.10",
+    "uuid": "^9.0.0",
+    "moment": "^2.29.4",
+    "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "eslint": "^8.56.0",
+    "nodemon": "^3.0.2"
+  }
+}

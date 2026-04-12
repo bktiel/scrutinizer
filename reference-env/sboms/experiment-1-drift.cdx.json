@@ -1,0 +1,145 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "serialNumber": "urn:uuid:c4d6f8a1-3b5e-4f7g-0b4c-6d9f2g8b3e5f",
+  "metadata": {
+    "timestamp": "2026-04-12T11:20:00Z",
+    "component": {
+      "type": "application",
+      "name": "experiment-1-drift",
+      "version": "1.0.0",
+      "bom-ref": "experiment-1-drift@1.0.0",
+      "purl": "pkg:npm/experiment-1-drift@1.0.0"
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "express",
+      "version": "4.18.2",
+      "bom-ref": "pkg:npm/express@4.18.2",
+      "purl": "pkg:npm/express@4.18.2",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "lodash",
+      "version": "4.17.21",
+      "bom-ref": "pkg:npm/lodash@4.17.21",
+      "purl": "pkg:npm/lodash@4.17.21",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "helmet",
+      "version": "7.1.0",
+      "bom-ref": "pkg:npm/helmet@7.1.0",
+      "purl": "pkg:npm/helmet@7.1.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "cors",
+      "version": "2.8.5",
+      "bom-ref": "pkg:npm/cors@2.8.5",
+      "purl": "pkg:npm/cors@2.8.5",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "dotenv",
+      "version": "16.3.1",
+      "bom-ref": "pkg:npm/dotenv@16.3.1",
+      "purl": "pkg:npm/dotenv@16.3.1",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "uuid",
+      "version": "9.0.0",
+      "bom-ref": "pkg:npm/uuid@9.0.0",
+      "purl": "pkg:npm/uuid@9.0.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "chalk",
+      "version": "4.1.2",
+      "bom-ref": "pkg:npm/chalk@4.1.2",
+      "purl": "pkg:npm/chalk@4.1.2",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "event-stream",
+      "version": "4.0.1",
+      "bom-ref": "pkg:npm/event-stream@4.0.1",
+      "purl": "pkg:npm/event-stream@4.0.1",
+      "scope": "required"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "experiment-1-drift@1.0.0",
+      "depends": [
+        {
+          "ref": "pkg:npm/express@4.18.2"
+        },
+        {
+          "ref": "pkg:npm/lodash@4.17.21"
+        },
+        {
+          "ref": "pkg:npm/helmet@7.1.0"
+        },
+        {
+          "ref": "pkg:npm/cors@2.8.5"
+        },
+        {
+          "ref": "pkg:npm/dotenv@16.3.1"
+        },
+        {
+          "ref": "pkg:npm/uuid@9.0.0"
+        },
+        {
+          "ref": "pkg:npm/chalk@4.1.2"
+        },
+        {
+          "ref": "pkg:npm/event-stream@4.0.1"
+        }
+      ]
+    },
+    {
+      "ref": "pkg:npm/express@4.18.2",
+      "depends": []
+    },
+    {
+      "ref": "pkg:npm/lodash@4.17.21",
+      "depends": []
+    },
+    {
+      "ref": "pkg:npm/helmet@7.1.0",
+      "depends": []
+    },
+    {
+      "ref": "pkg:npm/cors@2.8.5",
+      "depends": []
+    },
+    {
+      "ref": "pkg:npm/dotenv@16.3.1",
+      "depends": []
+    },
+    {
+      "ref": "pkg:npm/uuid@9.0.0",
+      "depends": []
+    },
+    {
+      "ref": "pkg:npm/chalk@4.1.2",
+      "depends": []
+    },
+    {
+      "ref": "pkg:npm/event-stream@4.0.1",
+      "depends": []
+    }
+  ]
+}
