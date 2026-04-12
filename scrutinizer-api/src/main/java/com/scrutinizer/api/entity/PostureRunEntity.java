@@ -1,6 +1,8 @@
 package com.scrutinizer.api.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,7 @@ public class PostureRunEntity {
     @Column(nullable = false)
     private double postureScore;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String summaryJson;
 
@@ -49,12 +52,15 @@ public class PostureRunEntity {
 
     private Instant reviewedAt;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String metricsJson;
 
     private UUID policyId;
 
-    @OneToMany(mappedBy = "postureRun", cascade = CascadeType.ALL, orphanRemoval = true)
+    private UUID projectId;
+
+    @OneToMany(mappedBy = "postureRun", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("componentRef ASC")
     private List<ComponentResultEntity> componentResults = new ArrayList<>();
 
@@ -96,4 +102,7 @@ public class PostureRunEntity {
     public void setMetricsJson(String metricsJson) { this.metricsJson = metricsJson; }
     public UUID getPolicyId() { return policyId; }
     public void setPolicyId(UUID policyId) { this.policyId = policyId; }
+
+    public UUID getProjectId() { return projectId; }
+    public void setProjectId(UUID projectId) { this.projectId = projectId; }
 }

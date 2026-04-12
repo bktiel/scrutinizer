@@ -12,9 +12,9 @@ export default function PostureTrendChart({ data }: PostureTrendChartProps) {
   }))
 
   const lineColor = (decision: string) => {
-    if (decision === 'PASS') return '#2e7d32'
-    if (decision === 'WARN') return '#ed6c02'
-    return '#d32f2f'
+    if (decision === 'PASS') return '#00E676'
+    if (decision === 'WARN') return '#FFAB00'
+    return '#FF5252'
   }
 
   const lastDecision = data.length > 0 ? data[data.length - 1].overallDecision : 'PASS'
@@ -22,19 +22,35 @@ export default function PostureTrendChart({ data }: PostureTrendChartProps) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
-        <YAxis domain={[0, 10]} />
-        <Tooltip />
-        <ReferenceLine y={7} stroke="#2e7d32" strokeDasharray="5 5" label="Pass" />
-        <ReferenceLine y={4} stroke="#ed6c02" strokeDasharray="5 5" label="Warn" />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(139, 148, 158, 0.1)" />
+        <XAxis
+          dataKey="date"
+          tick={{ fill: '#8B949E' }}
+          style={{ fontSize: '0.875rem' }}
+        />
+        <YAxis
+          domain={[0, 10]}
+          tick={{ fill: '#8B949E' }}
+          style={{ fontSize: '0.875rem' }}
+        />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#1C2333',
+            border: '1px solid rgba(139, 148, 158, 0.3)',
+            borderRadius: 8,
+            color: '#E6EDF3',
+          }}
+          labelStyle={{ color: '#E6EDF3' }}
+        />
+        <ReferenceLine y={7} stroke="#00E676" strokeDasharray="5 5" label={{ fill: '#8B949E', fontSize: 12 }} />
+        <ReferenceLine y={4} stroke="#FFAB00" strokeDasharray="5 5" label={{ fill: '#8B949E', fontSize: 12 }} />
         <Line
           type="monotone"
           dataKey="postureScore"
           stroke={lineColor(lastDecision)}
           strokeWidth={2}
-          dot={{ r: 4 }}
-          activeDot={{ r: 6 }}
+          dot={{ r: 4, fill: lineColor(lastDecision) }}
+          activeDot={{ r: 6, fill: lineColor(lastDecision) }}
         />
       </LineChart>
     </ResponsiveContainer>

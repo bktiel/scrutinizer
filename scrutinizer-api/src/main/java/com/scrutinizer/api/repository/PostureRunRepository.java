@@ -8,10 +8,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface PostureRunRepository extends JpaRepository<PostureRunEntity, UUID> {
+
+    @Query("SELECT r FROM PostureRunEntity r LEFT JOIN FETCH r.componentResults WHERE r.id = :id")
+    Optional<PostureRunEntity> findByIdWithComponents(UUID id);
 
     Page<PostureRunEntity> findByApplicationNameOrderByRunTimestampDesc(String applicationName, Pageable pageable);
 
@@ -21,4 +25,12 @@ public interface PostureRunRepository extends JpaRepository<PostureRunEntity, UU
     List<String> findDistinctApplicationNames();
 
     List<PostureRunEntity> findByApplicationNameOrderByRunTimestampAsc(String applicationName);
+
+    Page<PostureRunEntity> findByProjectIdOrderByRunTimestampDesc(UUID projectId, Pageable pageable);
+
+    Optional<PostureRunEntity> findFirstByProjectIdOrderByRunTimestampDesc(UUID projectId);
+
+    long countByProjectId(UUID projectId);
+
+    List<PostureRunEntity> findByProjectIdOrderByRunTimestampAsc(UUID projectId);
 }

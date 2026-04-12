@@ -28,7 +28,7 @@ public class ComponentResultEntity {
     @Column(nullable = false, length = 10)
     private String decision;
 
-    @OneToMany(mappedBy = "componentResult", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "componentResult", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("ruleId ASC")
     private List<FindingEntity> findings = new ArrayList<>();
 

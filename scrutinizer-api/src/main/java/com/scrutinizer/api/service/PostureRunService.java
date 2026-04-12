@@ -73,13 +73,20 @@ public class PostureRunService {
         EnrichedDependencyGraph enrichedGraph = enrichmentPipeline.enrich(graph);
         PostureReport report = postureEvaluator.evaluate(enrichedGraph, policy, sbomJson);
 
-        return persistReport(applicationName, report, enrichedGraph, policyEntity.getId());
+        return persistReport(applicationName, report, enrichedGraph, policyEntity.getId(), null);
+    }
+
+    @Transactional
+    public PostureRunEntity executeForProject(UUID projectId, String sbomJson) {
+        // Implementation will be provided - this is a placeholder for the schema build
+        throw new UnsupportedOperationException("executeForProject to be implemented in Phase 2");
     }
 
     private PostureRunEntity persistReport(String applicationName,
                                             PostureReport report,
                                             EnrichedDependencyGraph graph,
-                                            UUID policyId) {
+                                            UUID policyId,
+                                            UUID projectId) {
         PostureRunEntity run = new PostureRunEntity();
         run.setApplicationName(applicationName);
         run.setSbomHash(report.sbomHash());
@@ -88,6 +95,7 @@ public class PostureRunService {
         run.setOverallDecision(report.overallDecision().name());
         run.setPostureScore(report.postureScore());
         run.setPolicyId(policyId);
+        run.setProjectId(projectId);
 
         try {
             run.setSummaryJson(objectMapper.writeValueAsString(report.summary().toMap()));

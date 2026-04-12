@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -54,10 +55,15 @@ public class PostureRunController {
     public ResponseEntity<PostureRunSummaryDto> createRun(
             @Parameter(description = "CycloneDX SBOM JSON file") @RequestPart("sbom") MultipartFile sbomFile,
             @Parameter(description = "Application name") @RequestParam String applicationName,
-            @Parameter(description = "Policy ID to evaluate against") @RequestParam UUID policyId) {
+            @Parameter(description = "Policy ID to evaluate against") @RequestParam UUID policyId,
+            @Parameter(description = "Optional project ID to associate run with a project") @RequestParam(required = false) UUID projectId) {
         try {
             String sbomJson = new String(sbomFile.getBytes(), StandardCharsets.UTF_8);
             PostureRunEntity run = postureRunService.executeWithUpload(applicationName, sbomJson, policyId);
+            if (projectId != null) {
+                run.setProjectId(projectId);
+                run = postureRunRepository.save(run);
+            }
             return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toSummaryDto(run));
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -87,8 +93,9 @@ public class PostureRunController {
     @Operation(summary = "Get run detail", description = "Full detail for a single run including component results and findings.")
     @ApiResponse(responseCode = "200", description = "Run found")
     @ApiResponse(responseCode = "404", description = "Run not found")
+    @Transactional(readOnly = true)
     public PostureRunDetailDto getRunDetail(@PathVariable UUID id) {
-        PostureRunEntity entity = postureRunRepository.findById(id)
+        PostureRunEntity entity = postureRunRepository.findByIdWithComponents(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Run not found"));
         return mapper.toDetailDto(entity);
     }
@@ -118,8 +125,9 @@ public class PostureRunController {
     @ApiResponse(responseCode = "200", description = "Review updated")
     @ApiResponse(responseCode = "400", description = "Invalid review status")
     @ApiResponse(responseCode = "404", description = "Run not found")
+    @Transactional
     public PostureRunDetailDto reviewRun(@PathVariable UUID id, @RequestBody ReviewRequest request) {
-        PostureRunEntity entity = postureRunRepository.findById(id)
+        PostureRunEntity entity = postureRunRepository.findByIdWithComponents(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Run not found"));
 
         if (request.reviewStatus() != null && !request.reviewStatus().isBlank()) {
