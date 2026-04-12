@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://scrutinizer.dev/schemas/experiment-results/v1.0",
+  "title": "Scrutinizer Experiment Results",
+  "description": "Structured output from the experiment runner, capturing per-experiment assertions and timing data.",
+  "type": "object",
+  "required": ["schemaVersion", "timestamp", "environment", "summary", "experiments"],
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "1.0" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "environment": {
+      "type": "object",
+      "properties": {
+        "apiUrl": { "type": "string" },
+        "cacheWarmed": { "type": "boolean" },
+        "policyId": { "type": "string" },
+        "projectId": { "type": "string" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["totalExperiments", "passed", "failed", "totalAssertions", "assertionsPassed", "assertionsFailed"],
+      "properties": {
+        "totalExperiments": { "type": "integer" },
+        "passed": { "type": "integer" },
+        "failed": { "type": "integer" },
+        "totalAssertions": { "type": "integer" },
+        "assertionsPassed": { "type": "integer" },
+        "assertionsFailed": { "type": "integer" }
+      }
+    },
+    "experiments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "status", "durationMs", "assertions"],
+        "properties": {
+          "id": { "type": "integer", "minimum": 1, "maximum": 4 },
+          "name": { "type": "string" },
+          "status": { "type": "string", "enum": ["PASS", "FAIL", "ERROR", "SKIP"] },
+          "durationMs": { "type": "integer" },
+          "assertions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "status"],
+              "properties": {
+                "name": { "type": "string" },
+                "status": { "type": "string", "enum": ["PASS", "FAIL"] },
+                "expected": {},
+                "actual": {},
+                "message": { "type": "string" }
+              }
+            }
+          },
+          "timingData": {
+            "type": "object",
+            "description": "Timing measurements for Experiment 4 (Developer Workflow Impact)",
+            "properties": {
+              "actions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "iterations": { "type": "integer" },
+                    "meanMs": { "type": "number" },
+                    "p95Ms": { "type": "number" },
+                    "minMs": { "type": "number" },
+                    "maxMs": { "type": "number" },
+                    "rawMs": { "type": "array", "items": { "type": "number" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
