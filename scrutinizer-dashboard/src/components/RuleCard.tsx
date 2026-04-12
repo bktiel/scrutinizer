@@ -231,7 +231,7 @@ export default function RuleCard({ rule, onChange, onDelete }: RuleCardProps) {
                 fullWidth
                 size="small"
               >
-                {Object.entries(SEVERITY_DESCRIPTIONS).map(([sev, desc]) => (
+                {Object.entries(SEVERITY_DESCRIPTIONS).map(([sev]) => (
                   <MenuItem key={sev} value={sev}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Chip
@@ -272,7 +272,7 @@ export default function RuleCard({ rule, onChange, onDelete }: RuleCardProps) {
                 fullWidth
                 size="small"
               >
-                {Object.entries(TARGET_DESCRIPTIONS).map(([tgt, desc]) => (
+                {Object.entries(TARGET_DESCRIPTIONS).map(([tgt]) => (
                   <MenuItem key={tgt} value={tgt}>
                     {tgt}
                   </MenuItem>

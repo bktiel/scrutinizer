@@ -93,6 +93,7 @@ const carbonTheme = createTheme({
         },
       },
     },
+    // @ts-expect-error MuiDataGrid types from @mui/x-data-grid not merged into Components
     MuiDataGrid: {
       styleOverrides: {
         root: {

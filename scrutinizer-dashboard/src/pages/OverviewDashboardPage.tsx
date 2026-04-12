@@ -17,7 +17,7 @@ import {
   LinearProgress,
 } from '@mui/material'
 import SignalBadge from '../components/SignalBadge'
-import { listProjects, listRuns, Project, PostureRunSummary, Page } from '../api/scrutinizerApi'
+import { listProjects, listRuns, Project, PostureRunSummary } from '../api/scrutinizerApi'
 
 export default function OverviewDashboardPage() {
   const navigate = useNavigate()
@@ -61,12 +61,6 @@ export default function OverviewDashboardPage() {
     WARN: projects.filter((p) => p.stats?.latestDecision === 'WARN'),
     FAIL: projects.filter((p) => p.stats?.latestDecision === 'FAIL'),
   }
-
-  // Get top findings (aggregate findings from latest components)
-  const findingsMap = new Map<string, number>()
-  projects.forEach((p) => {
-    p.stats?.failCount // This is aggregated fail count
-  })
 
   const recentRuns = runs.slice(0, 5)
 
