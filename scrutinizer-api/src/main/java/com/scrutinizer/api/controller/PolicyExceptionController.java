@@ -2,6 +2,7 @@ package com.scrutinizer.api.controller;
 
 import com.scrutinizer.api.dto.CreateExceptionRequest;
 import com.scrutinizer.api.dto.PolicyExceptionDto;
+import com.scrutinizer.api.dto.UpdateExceptionRequest;
 import com.scrutinizer.api.entity.PolicyExceptionEntity;
 import com.scrutinizer.api.repository.PolicyExceptionRepository;
 import com.scrutinizer.api.repository.PolicyRepository;
