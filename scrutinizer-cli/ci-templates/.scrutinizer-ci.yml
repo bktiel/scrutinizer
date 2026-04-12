@@ -1,0 +1,227 @@
+# Scrutinizer Policy Evaluation CI Template
+#
+# This is a reusable GitLab CI template for evaluating SBOMs against
+# Scrutinizer policies. Include this in your .gitlab-ci.yml:
+#
+#   include:
+#     - project: 'your-group/scrutinizer'
+#       ref: main
+#       file: '/scrutinizer-cli/ci-templates/.scrutinizer-ci.yml'
+#
+#   scrutinizer-scan:
+#     extends: .scrutinizer-scan
+#     variables:
+#       SCRUTINIZER_POLICY_ID: "550e8400-e29b-41d4-a716-446655440000"
+#
+# The template job will:
+#   - Send SBOM to Scrutinizer API for evaluation
+#   - Parse the response and output findings
+#   - Save the report as an artifact
+#   - Pass/fail based on policy decision (configurable)
+#
+
+# Base job for Scrutinizer scanning
+# Use this as a base for your scanning jobs
+.scrutinizer-scan:
+  stage: test
+  image: curlimages/curl:latest
+  variables:
+    # API Configuration
+    SCRUTINIZER_API_URL: "http://scrutinizer-api:8080"
+    SCRUTINIZER_POLICY_ID: ""
+    SCRUTINIZER_PROJECT_ID: ""
+
+    # Application Metadata
+    SCRUTINIZER_APP_NAME: "$CI_PROJECT_NAME"
+    SCRUTINIZER_SBOM_PATH: "sbom.json"
+
+    # Behavior Configuration
+    SCRUTINIZER_FAIL_ON_WARN: "false"
+    REPORT_PATH: "posture-report.json"
+
+  before_script:
+    # Validate required configuration
+    - |
+      if [ -z "$SCRUTINIZER_POLICY_ID" ]; then
+        echo "ERROR: SCRUTINIZER_POLICY_ID is required but not set"
+        echo "Configure it as a CI/CD variable or in the job definition"
+        exit 2
+      fi
+
+    # Check if SBOM file exists
+    - |
+      if [ ! -f "$SCRUTINIZER_SBOM_PATH" ]; then
+        echo "WARNING: SBOM file not found at $SCRUTINIZER_SBOM_PATH"
+        echo "Generate it with: cdxgen -o sbom.json"
+        exit 0
+      fi
+
+    # Verify curl is available
+    - curl --version
+
+  script:
+    - |
+      echo "========================================="
+      echo "Scrutinizer Policy Evaluation"
+      echo "========================================="
+      echo ""
+      echo "Policy ID:     $SCRUTINIZER_POLICY_ID"
+      echo "API URL:       $SCRUTINIZER_API_URL"
+      echo "App Name:      $SCRUTINIZER_APP_NAME"
+      echo "SBOM Path:     $SCRUTINIZER_SBOM_PATH"
+      echo ""
+
+      # Record start time for performance measurement
+      START_TIME=$(date +%s%3N)
+
+      # Build the request payload
+      # The API expects the SBOM object, policy ID, and optional metadata
+      REQUEST_FILE=$(mktemp)
+      cat > "$REQUEST_FILE" <<EOF
+      {
+        "sbom": $(cat "$SCRUTINIZER_SBOM_PATH"),
+        "policyId": "$SCRUTINIZER_POLICY_ID",
+        "projectId": "$SCRUTINIZER_PROJECT_ID",
+        "appName": "$SCRUTINIZER_APP_NAME"
+      }
+      EOF
+
+      echo "Sending SBOM to Scrutinizer API..."
+
+      # Call the Scrutinizer API
+      HTTP_CODE=$(curl \
+        -s \
+        -w "%{http_code}" \
+        -X POST \
+        -H "Content-Type: application/json" \
+        -d @"$REQUEST_FILE" \
+        "${SCRUTINIZER_API_URL}/api/v1/runs" \
+        -o "$REPORT_PATH")
+
+      rm -f "$REQUEST_FILE"
+
+      # Record end time
+      END_TIME=$(date +%s%3N)
+      ELAPSED=$((END_TIME - START_TIME))
+
+      echo "API Response Code: $HTTP_CODE"
+      echo "Evaluation Time: ${ELAPSED}ms"
+      echo ""
+
+      # Handle HTTP errors
+      if [ "$HTTP_CODE" != "200" ]; then
+        echo "ERROR: API returned HTTP $HTTP_CODE"
+        if [ -s "$REPORT_PATH" ]; then
+          echo "Response:"
+          cat "$REPORT_PATH"
+        fi
+        exit 1
+      fi
+
+      # Parse the decision from the response
+      # Try jq first, fall back to grep if not available
+      DECISION=$(jq -r '.decision // empty' "$REPORT_PATH" 2>/dev/null || grep -o '"decision":"[^"]*' "$REPORT_PATH" | cut -d'"' -f4)
+
+      if [ -z "$DECISION" ]; then
+        echo "ERROR: Could not parse policy decision from API response"
+        echo "Full response:"
+        cat "$REPORT_PATH"
+        exit 1
+      fi
+
+      echo "Policy Decision: $DECISION"
+      echo ""
+
+      # Extract findings count and details
+      FINDINGS_COUNT=$(jq -r '.findingsCount // .findings | length' "$REPORT_PATH" 2>/dev/null || echo "0")
+
+      if [ "$FINDINGS_COUNT" != "0" ] && [ -n "$FINDINGS_COUNT" ]; then
+        echo "Findings ($FINDINGS_COUNT):"
+        jq -r '.findings[]? | "  [\(.severity)] \(.description)"' "$REPORT_PATH" 2>/dev/null | head -10
+
+        TOTAL=$(jq -r '.findings[]? | .severity' "$REPORT_PATH" 2>/dev/null | wc -l)
+        if [ "$TOTAL" -gt 10 ]; then
+          echo "  ... and $((TOTAL - 10)) more findings"
+        fi
+        echo ""
+      fi
+
+      echo "========================================="
+      echo ""
+
+      # Process the decision
+      case "$DECISION" in
+        PASS)
+          echo "✓ Policy evaluation PASSED"
+          exit 0
+          ;;
+        WARN)
+          echo "⚠ Policy evaluation returned WARN"
+
+          if [ "$SCRUTINIZER_FAIL_ON_WARN" = "true" ]; then
+            echo "Failing due to SCRUTINIZER_FAIL_ON_WARN=true"
+            exit 1
+          else
+            echo "Allowing commit (warnings non-blocking)"
+            exit 0
+          fi
+          ;;
+        FAIL)
+          echo "✗ Policy evaluation FAILED"
+          echo ""
+          echo "This commit violates the configured Scrutinizer policy."
+          echo "Review the findings above and update dependencies as needed."
+          exit 1
+          ;;
+        *)
+          echo "ERROR: Unknown policy decision: $DECISION"
+          exit 1
+          ;;
+      esac
+
+  after_script:
+    # Always save the report, even on failure
+    - |
+      if [ -f "$REPORT_PATH" ]; then
+        echo ""
+        echo "Full report saved to: $REPORT_PATH"
+      fi
+
+  artifacts:
+    when: always
+    paths:
+      - "$REPORT_PATH"
+    reports:
+      # Optional: expose findings as CI report
+      # (requires Scrutinizer to output in standard format)
+      # dependency_scanning: "$REPORT_PATH"
+    expire_in: 30 days
+
+  # By default, don't block the pipeline on policy failure
+  # Set allow_failure: false in your job to make it blocking
+  allow_failure: true
+
+  # Retry configuration for transient API failures
+  retry:
+    max: 2
+    when:
+      - script_failure
+
+  # Optional: Set a timeout for long-running evaluations
+  timeout: 5 minutes
+
+
+# ============================================================================
+# Optional: Strict scanning job that blocks the pipeline
+# ============================================================================
+.scrutinizer-scan-strict:
+  extends: .scrutinizer-scan
+  allow_failure: false
+
+
+# ============================================================================
+# Optional: Background scanning that doesn't block the pipeline
+# ============================================================================
+.scrutinizer-scan-advisory:
+  extends: .scrutinizer-scan
+  allow_failure: true

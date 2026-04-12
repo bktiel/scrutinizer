@@ -1,0 +1,259 @@
+#!/usr/bin/env bash
+
+#
+# Scrutinizer Pre-Commit Hook
+# Checks dependency changes against posture policy engine
+#
+# Exit codes:
+#   0 = success (no blocking issues)
+#   1 = policy violation (commit blocked)
+#   2 = configuration error
+#   3 = API/connection error (non-blocking)
+#
+
+set -o pipefail
+
+# Color output functions
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+log_info() {
+    echo -e "${BLUE}[Scrutinizer]${NC} $*" >&2
+}
+
+log_success() {
+    echo -e "${GREEN}[Scrutinizer]${NC} $*" >&2
+}
+
+log_warn() {
+    echo -e "${YELLOW}[Scrutinizer]${NC} $*" >&2
+}
+
+log_error() {
+    echo -e "${RED}[Scrutinizer]${NC} $*" >&2
+}
+
+# Check if hook should be skipped
+if [[ "${SCRUTINIZER_SKIP_HOOK}" == "true" ]]; then
+    log_info "Hook skipped (SCRUTINIZER_SKIP_HOOK=true)"
+    exit 0
+fi
+
+# Load configuration from .scrutinizer.env if present
+if [[ -f ".scrutinizer.env" ]]; then
+    set -o allexport
+    source .scrutinizer.env
+    set +o allexport
+fi
+
+# Set defaults
+SCRUTINIZER_API_URL="${SCRUTINIZER_API_URL:-http://localhost:8080}"
+SCRUTINIZER_SBOM_PATH="${SCRUTINIZER_SBOM_PATH:-./sbom.json}"
+SCRUTINIZER_FAIL_ON_WARN="${SCRUTINIZER_FAIL_ON_WARN:-false}"
+APP_NAME="${SCRUTINIZER_APP_NAME:-$(basename "$(git rev-parse --show-toplevel)")}"
+
+# Validate required configuration
+if [[ -z "${SCRUTINIZER_POLICY_ID}" ]]; then
+    log_error "SCRUTINIZER_POLICY_ID is required but not set"
+    log_info "Set it in .scrutinizer.env or as an environment variable"
+    exit 2
+fi
+
+# Start timing
+START_TIME=$(date +%s%3N)
+
+# Dependency files to watch
+DEPENDENCY_FILES=(
+    "pom.xml"
+    "build.gradle"
+    "package.json"
+    "yarn.lock"
+    "package-lock.json"
+    "go.mod"
+    "requirements.txt"
+    "Cargo.toml"
+    "Gemfile.lock"
+)
+
+# Check if any dependency files are staged
+log_info "Checking for dependency changes..."
+HAS_DEPENDENCY_CHANGES=0
+
+for file in "${DEPENDENCY_FILES[@]}"; do
+    if git diff --cached --name-only | grep -q "^${file}$"; then
+        HAS_DEPENDENCY_CHANGES=1
+        log_info "Detected change: $file"
+        break
+    fi
+done
+
+# If no dependency changes, exit early (fast path)
+if [[ $HAS_DEPENDENCY_CHANGES -eq 0 ]]; then
+    END_TIME=$(date +%s%3N)
+    ELAPSED=$((END_TIME - START_TIME))
+    log_success "No dependency changes detected (${ELAPSED}ms)"
+    exit 0
+fi
+
+# Look for SBOM file
+if [[ ! -f "${SCRUTINIZER_SBOM_PATH}" ]]; then
+    log_warn "SBOM file not found at ${SCRUTINIZER_SBOM_PATH}"
+
+    # Try to generate SBOM using cdxgen if available
+    if command -v cdxgen &> /dev/null; then
+        log_info "Attempting to generate SBOM with cdxgen..."
+        if cdxgen -o "${SCRUTINIZER_SBOM_PATH}" . 2>/dev/null; then
+            log_success "SBOM generated successfully"
+        else
+            log_warn "Failed to generate SBOM with cdxgen"
+            log_info "Skipping policy check - no SBOM available"
+            exit 0
+        fi
+    else
+        log_warn "cdxgen not installed, cannot generate SBOM"
+        log_info "To fix: install cdxgen (npm install -g @cyclonedx/cdxgen)"
+        log_info "Skipping policy check - no SBOM available"
+        exit 0
+    fi
+fi
+
+log_info "Sending SBOM to policy engine..."
+
+# Build the API request
+REQUEST_JSON=$(cat <<EOF
+{
+  "sbom": $(cat "${SCRUTINIZER_SBOM_PATH}"),
+  "policyId": "${SCRUTINIZER_POLICY_ID}",
+  "projectId": "${SCRUTINIZER_PROJECT_ID:-}",
+  "appName": "${APP_NAME}"
+}
+EOF
+)
+
+# Call the API with curl, capturing both response and HTTP code
+RESPONSE=$(mktemp)
+HTTP_CODE=$(curl \
+    -s \
+    -w "%{http_code}" \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -d "${REQUEST_JSON}" \
+    "${SCRUTINIZER_API_URL}/api/v1/runs" \
+    -o "${RESPONSE}" \
+    2>/dev/null)
+
+# Handle connection errors
+if [[ -z "$HTTP_CODE" ]]; then
+    log_error "Failed to connect to Scrutinizer API at ${SCRUTINIZER_API_URL}"
+    log_warn "Proceeding with commit (API unreachable)"
+    rm -f "${RESPONSE}"
+    exit 3
+fi
+
+# Parse the response
+if [[ "$HTTP_CODE" != "200" ]]; then
+    log_error "API returned HTTP ${HTTP_CODE}"
+    if [[ -s "${RESPONSE}" ]]; then
+        log_info "Response: $(cat "${RESPONSE}" | head -1)"
+    fi
+    log_warn "Proceeding with commit (API error)"
+    rm -f "${RESPONSE}"
+    exit 3
+fi
+
+# Extract decision from response (try jq first, fall back to grep)
+DECISION=""
+if command -v jq &> /dev/null; then
+    DECISION=$(jq -r '.decision' "${RESPONSE}" 2>/dev/null)
+else
+    DECISION=$(grep -o '"decision":"[^"]*' "${RESPONSE}" | cut -d'"' -f4)
+fi
+
+if [[ -z "$DECISION" ]]; then
+    log_error "Could not parse API response"
+    log_warn "Proceeding with commit"
+    rm -f "${RESPONSE}"
+    exit 3
+fi
+
+END_TIME=$(date +%s%3N)
+ELAPSED=$((END_TIME - START_TIME))
+
+# Process decision
+case "$DECISION" in
+    PASS)
+        log_success "Policy check PASSED (${ELAPSED}ms)"
+
+        # Try to print summary if jq available
+        if command -v jq &> /dev/null; then
+            FINDINGS=$(jq -r '.findingsCount // 0' "${RESPONSE}" 2>/dev/null)
+            if [[ -n "$FINDINGS" && "$FINDINGS" != "0" ]]; then
+                log_info "Findings: $FINDINGS issue(s) identified (within policy)"
+            fi
+        fi
+
+        rm -f "${RESPONSE}"
+        exit 0
+        ;;
+
+    WARN)
+        log_warn "Policy check returned WARN (${ELAPSED}ms)"
+
+        # Print summary
+        if command -v jq &> /dev/null; then
+            FINDINGS=$(jq -r '.findings // []' "${RESPONSE}" 2>/dev/null)
+            COUNT=$(echo "$FINDINGS" | jq 'length' 2>/dev/null)
+
+            if [[ -n "$COUNT" && "$COUNT" != "0" ]]; then
+                log_warn "Found $COUNT issue(s) (non-blocking):"
+                echo "$FINDINGS" | jq -r '.[] | "  - \(.severity): \(.description)"' 2>/dev/null | head -5
+            fi
+        fi
+
+        # Check if we should fail on warnings
+        if [[ "${SCRUTINIZER_FAIL_ON_WARN}" == "true" ]]; then
+            log_error "Blocking commit due to SCRUTINIZER_FAIL_ON_WARN=true"
+            rm -f "${RESPONSE}"
+            exit 1
+        fi
+
+        rm -f "${RESPONSE}"
+        exit 0
+        ;;
+
+    FAIL)
+        log_error "Policy check FAILED (${ELAPSED}ms)"
+
+        # Print findings summary
+        if command -v jq &> /dev/null; then
+            FINDINGS=$(jq -r '.findings // []' "${RESPONSE}" 2>/dev/null)
+            COUNT=$(echo "$FINDINGS" | jq 'length' 2>/dev/null)
+
+            if [[ -n "$COUNT" && "$COUNT" != "0" ]]; then
+                log_error "Found $COUNT issue(s) that violate the policy:"
+                echo "$FINDINGS" | jq -r '.[] | "  - \(.severity): \(.description)"' 2>/dev/null | head -5
+                if [[ $COUNT -gt 5 ]]; then
+                    echo -e "${RED}  ... and $((COUNT - 5)) more${NC}"
+                fi
+            else
+                log_error "Policy evaluation failed"
+            fi
+        fi
+
+        log_error "Commit blocked by policy engine"
+        log_info "Review findings above or contact your security team"
+
+        rm -f "${RESPONSE}"
+        exit 1
+        ;;
+
+    *)
+        log_error "Unknown decision: $DECISION"
+        log_warn "Proceeding with commit"
+        rm -f "${RESPONSE}"
+        exit 3
+        ;;
+esac

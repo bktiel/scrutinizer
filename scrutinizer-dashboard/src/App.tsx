@@ -4,6 +4,7 @@ import SecurityIcon from '@mui/icons-material/Security'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import FolderIcon from '@mui/icons-material/Folder'
 import PolicyIcon from '@mui/icons-material/Policy'
+import BlockIcon from '@mui/icons-material/Block'
 import AddIcon from '@mui/icons-material/Add'
 import OverviewDashboardPage from './pages/OverviewDashboardPage'
 import ProjectsPage from './pages/ProjectsPage'
@@ -15,6 +16,7 @@ import ApplicationTrendPage from './pages/ApplicationTrendPage'
 import PoliciesPage from './pages/PoliciesPage'
 import PolicyConfiguratorPage from './pages/PolicyConfiguratorPage'
 import NewRunPage from './pages/NewRunPage'
+import ExceptionsPage from './pages/ExceptionsPage'
 
 export default function App() {
   return (
@@ -56,6 +58,15 @@ export default function App() {
             <Button
               color="inherit"
               component={Link}
+              to="/exceptions"
+              startIcon={<BlockIcon />}
+              sx={{ textTransform: 'none' }}
+            >
+              Exceptions
+            </Button>
+            <Button
+              color="inherit"
+              component={Link}
               to="/new-run"
               startIcon={<AddIcon />}
               sx={{ textTransform: 'none' }}
@@ -74,6 +85,7 @@ export default function App() {
             <Route path="/policies" element={<PoliciesPage />} />
             <Route path="/policies/new" element={<PolicyConfiguratorPage />} />
             <Route path="/policies/:id/edit" element={<PolicyConfiguratorPage />} />
+            <Route path="/exceptions" element={<ExceptionsPage />} />
             <Route path="/new-run" element={<NewRunPage />} />
             <Route path="/runs/:id" element={<RunDetailPage />} />
             <Route path="/runs/:id/findings" element={<FindingsPage />} />
