@@ -174,3 +174,150 @@ export async function deletePolicy(id: string): Promise<void> {
 export async function getPolicyHistory(id: string): Promise<PolicyHistory[]> {
   return get(`/policies/${id}/history`)
 }
+
+export async function createPolicyFromYaml(yaml: string, description?: string): Promise<Policy> {
+  const blob = new Blob([yaml], { type: 'application/x-yaml' })
+  const file = new File([blob], 'policy.yaml', { type: 'application/x-yaml' })
+  return uploadPolicy(file, description)
+}
+
+export async function updatePolicyFromYaml(id: string, yaml: string, description?: string): Promise<Policy> {
+  const blob = new Blob([yaml], { type: 'application/x-yaml' })
+  const file = new File([blob], 'policy.yaml', { type: 'application/x-yaml' })
+  return updatePolicy(id, file, description)
+}
+
+// --- Projects ---
+
+export interface Project {
+  id: string
+  name: string
+  description: string | null
+  repositoryUrl: string | null
+  gitlabProjectId: string | null
+  defaultBranch: string
+  policyId: string | null
+  policyName: string | null
+  createdAt: string
+  updatedAt: string
+  stats: ProjectStats | null
+}
+
+export interface ProjectStats {
+  totalRuns: number
+  totalComponents: number
+  passCount: number
+  failCount: number
+  warnCount: number
+  latestScore: number
+  latestDecision: string
+  lastRunAt: string | null
+  provenanceCoverage: number
+  scorecardCoverage: number
+}
+
+export interface PolicyException {
+  id: string
+  projectId: string
+  policyId: string | null
+  ruleId: string | null
+  packageName: string | null
+  packageVersion: string | null
+  justification: string
+  createdBy: string
+  approvedBy: string | null
+  status: string
+  scope: string
+  expiresAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export async function listProjects(): Promise<Project[]> {
+  return get('/projects')
+}
+
+export async function getProject(id: string): Promise<Project> {
+  return get(`/projects/${id}`)
+}
+
+export async function createProject(data: { name: string; description?: string; repositoryUrl?: string; gitlabProjectId?: string; defaultBranch?: string; policyId?: string }): Promise<Project> {
+  const res = await fetch(`${BASE}/projects`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+  return res.json()
+}
+
+export async function updateProject(id: string, data: Record<string, unknown>): Promise<Project> {
+  const res = await fetch(`${BASE}/projects/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+  return res.json()
+}
+
+export async function deleteProject(id: string): Promise<void> {
+  return del(`/projects/${id}`)
+}
+
+export async function assignProjectPolicy(id: string, policyId: string): Promise<Project> {
+  const res = await fetch(`${BASE}/projects/${id}/policy`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ policyId }),
+  })
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+  return res.json()
+}
+
+export async function getProjectRuns(id: string, page = 0, size = 20): Promise<Page<PostureRunSummary>> {
+  return get(`/projects/${id}/runs`, { page, size })
+}
+
+export async function getProjectComponents(id: string): Promise<ComponentResult[]> {
+  return get(`/projects/${id}/components`)
+}
+
+export async function getProjectTrends(id: string): Promise<TrendDataPoint[]> {
+  return get(`/projects/${id}/trends`)
+}
+
+export async function getProjectExceptions(projectId: string): Promise<PolicyException[]> {
+  return get(`/projects/${projectId}/exceptions`)
+}
+
+export async function listExceptions(projectId?: string, status?: string): Promise<PolicyException[]> {
+  const params: Record<string, string> = {}
+  if (projectId) params.projectId = projectId
+  if (status) params.status = status
+  return get('/exceptions', params)
+}
+
+export async function createException(data: { projectId: string; policyId?: string; ruleId?: string; packageName?: string; packageVersion?: string; justification: string; scope?: string; expiresAt?: string }): Promise<PolicyException> {
+  const res = await fetch(`${BASE}/exceptions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+  return res.json()
+}
+
+export async function updateException(id: string, data: Record<string, unknown>): Promise<PolicyException> {
+  const res = await fetch(`${BASE}/exceptions/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+  return res.json()
+}
+
+export async function deleteException(id: string): Promise<void> {
+  return del(`/exceptions/${id}`)
+}

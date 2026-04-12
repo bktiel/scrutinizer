@@ -1,18 +1,22 @@
 import { useEffect, useState, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Typography, Box, Button, Card, CardContent, CardActions,
   IconButton, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Stack, Chip, Alert
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
 import HistoryIcon from '@mui/icons-material/History'
+import AddIcon from '@mui/icons-material/Add'
 import {
   listPolicies, uploadPolicy, deletePolicy, getPolicyHistory,
   Policy, PolicyHistory
 } from '../api/scrutinizerApi'
 
 export default function PoliciesPage() {
+  const navigate = useNavigate()
   const [policies, setPolicies] = useState<Policy[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -72,9 +76,14 @@ export default function PoliciesPage() {
     <Box>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <Typography variant="h4">Policies</Typography>
-        <Button variant="contained" startIcon={<UploadFileIcon />} onClick={() => setUploadOpen(true)}>
-          Upload Policy
-        </Button>
+        <Stack direction="row" spacing={1}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/policies/new')}>
+            Create Policy
+          </Button>
+          <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={() => setUploadOpen(true)}>
+            Import YAML
+          </Button>
+        </Stack>
       </Stack>
 
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
@@ -108,6 +117,9 @@ export default function PoliciesPage() {
             <CardActions>
               <IconButton size="small" onClick={() => handleHistory(p)} title="View history">
                 <HistoryIcon />
+              </IconButton>
+              <IconButton size="small" onClick={() => navigate(`/policies/${p.id}/edit`)} title="Edit policy">
+                <EditIcon />
               </IconButton>
               <IconButton size="small" color="error" onClick={() => handleDelete(p.id)} title="Delete">
                 <DeleteIcon />
