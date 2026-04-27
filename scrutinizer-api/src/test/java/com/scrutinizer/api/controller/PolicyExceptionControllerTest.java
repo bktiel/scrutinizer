@@ -44,7 +44,7 @@ class PolicyExceptionControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private PolicyExceptionRepository exceptionRepository;
+    private PolicyExceptionRepository policyExceptionRepository;
 
     @MockBean
     private ProjectRepository projectRepository;
@@ -91,7 +91,7 @@ class PolicyExceptionControllerTest {
 
             when(projectRepository.existsById(projectId)).thenReturn(true);
             when(policyRepository.existsById(policyId)).thenReturn(true);
-            when(exceptionRepository.save(any(PolicyExceptionEntity.class))).thenReturn(exceptionEntity);
+            when(policyExceptionRepository.save(any(PolicyExceptionEntity.class))).thenReturn(exceptionEntity);
 
             String requestBody = objectMapper.writeValueAsString(request);
             mockMvc.perform(post("/api/v1/exceptions")
@@ -101,7 +101,7 @@ class PolicyExceptionControllerTest {
                     .andExpect(jsonPath("$.ruleId", is("RULE-001")))
                     .andExpect(jsonPath("$.packageName", is("lodash")));
 
-            verify(exceptionRepository).save(any(PolicyExceptionEntity.class));
+            verify(policyExceptionRepository).save(any(PolicyExceptionEntity.class));
         }
 
         @Test
@@ -148,20 +148,20 @@ class PolicyExceptionControllerTest {
             exception2.setStatus("ACTIVE");
 
             Page<PolicyExceptionEntity> page = new PageImpl<>(List.of(exceptionEntity, exception2));
-            when(exceptionRepository.findAll(PageRequest.of(0, 20))).thenReturn(page);
+            when(policyExceptionRepository.findAll(PageRequest.of(0, 20))).thenReturn(page);
 
             mockMvc.perform(get("/api/v1/exceptions"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content", hasSize(2)))
                     .andExpect(jsonPath("$.content[0].ruleId", is("RULE-001")));
 
-            verify(exceptionRepository).findAll(PageRequest.of(0, 20));
+            verify(policyExceptionRepository).findAll(PageRequest.of(0, 20));
         }
 
         @Test
         void shouldFilterByProjectAndStatus() throws Exception {
             Page<PolicyExceptionEntity> page = new PageImpl<>(List.of(exceptionEntity));
-            when(exceptionRepository.findByProjectIdAndStatus(projectId, "ACTIVE", PageRequest.of(0, 20)))
+            when(policyExceptionRepository.findByProjectIdAndStatus(projectId, "ACTIVE", PageRequest.of(0, 20)))
                     .thenReturn(page);
 
             mockMvc.perform(get("/api/v1/exceptions")
@@ -170,13 +170,13 @@ class PolicyExceptionControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content", hasSize(1)));
 
-            verify(exceptionRepository).findByProjectIdAndStatus(projectId, "ACTIVE", PageRequest.of(0, 20));
+            verify(policyExceptionRepository).findByProjectIdAndStatus(projectId, "ACTIVE", PageRequest.of(0, 20));
         }
 
         @Test
         void shouldSupportPagination() throws Exception {
             Page<PolicyExceptionEntity> page = new PageImpl<>(List.of(exceptionEntity), PageRequest.of(1, 10), 25);
-            when(exceptionRepository.findAll(PageRequest.of(1, 10))).thenReturn(page);
+            when(policyExceptionRepository.findAll(PageRequest.of(1, 10))).thenReturn(page);
 
             mockMvc.perform(get("/api/v1/exceptions")
                     .param("page", "1")
@@ -190,7 +190,7 @@ class PolicyExceptionControllerTest {
     class GetException {
         @Test
         void shouldReturnExceptionDetail() throws Exception {
-            when(exceptionRepository.findById(exceptionId)).thenReturn(Optional.of(exceptionEntity));
+            when(policyExceptionRepository.findById(exceptionId)).thenReturn(Optional.of(exceptionEntity));
 
             mockMvc.perform(get("/api/v1/exceptions/{id}", exceptionId))
                     .andExpect(status().isOk())
@@ -198,13 +198,13 @@ class PolicyExceptionControllerTest {
                     .andExpect(jsonPath("$.ruleId", is("RULE-001")))
                     .andExpect(jsonPath("$.status", is("ACTIVE")));
 
-            verify(exceptionRepository).findById(exceptionId);
+            verify(policyExceptionRepository).findById(exceptionId);
         }
 
         @Test
         void shouldReturn404WhenExceptionNotFound() throws Exception {
             UUID unknownId = UUID.randomUUID();
-            when(exceptionRepository.findById(unknownId)).thenReturn(Optional.empty());
+            when(policyExceptionRepository.findById(unknownId)).thenReturn(Optional.empty());
 
             mockMvc.perform(get("/api/v1/exceptions/{id}", unknownId))
                     .andExpect(status().isNotFound());
@@ -217,8 +217,8 @@ class PolicyExceptionControllerTest {
         void shouldUpdateExceptionStatus() throws Exception {
             UpdateExceptionRequest request = new UpdateExceptionRequest("REVOKED", "approver", null);
 
-            when(exceptionRepository.findById(exceptionId)).thenReturn(Optional.of(exceptionEntity));
-            when(exceptionRepository.save(any(PolicyExceptionEntity.class))).thenReturn(exceptionEntity);
+            when(policyExceptionRepository.findById(exceptionId)).thenReturn(Optional.of(exceptionEntity));
+            when(policyExceptionRepository.save(any(PolicyExceptionEntity.class))).thenReturn(exceptionEntity);
 
             String requestBody = objectMapper.writeValueAsString(request);
             mockMvc.perform(put("/api/v1/exceptions/{id}", exceptionId)
@@ -226,7 +226,7 @@ class PolicyExceptionControllerTest {
                     .content(requestBody))
                     .andExpect(status().isOk());
 
-            verify(exceptionRepository).save(any(PolicyExceptionEntity.class));
+            verify(policyExceptionRepository).save(any(PolicyExceptionEntity.class));
         }
 
         @Test
@@ -234,8 +234,8 @@ class PolicyExceptionControllerTest {
             Instant newExpiry = Instant.now().plusSeconds(172800);
             UpdateExceptionRequest request = new UpdateExceptionRequest(null, null, newExpiry);
 
-            when(exceptionRepository.findById(exceptionId)).thenReturn(Optional.of(exceptionEntity));
-            when(exceptionRepository.save(any(PolicyExceptionEntity.class))).thenReturn(exceptionEntity);
+            when(policyExceptionRepository.findById(exceptionId)).thenReturn(Optional.of(exceptionEntity));
+            when(policyExceptionRepository.save(any(PolicyExceptionEntity.class))).thenReturn(exceptionEntity);
 
             String requestBody = objectMapper.writeValueAsString(request);
             mockMvc.perform(put("/api/v1/exceptions/{id}", exceptionId)
@@ -243,7 +243,7 @@ class PolicyExceptionControllerTest {
                     .content(requestBody))
                     .andExpect(status().isOk());
 
-            verify(exceptionRepository).save(any(PolicyExceptionEntity.class));
+            verify(policyExceptionRepository).save(any(PolicyExceptionEntity.class));
         }
 
         @Test
@@ -251,7 +251,7 @@ class PolicyExceptionControllerTest {
             UUID unknownId = UUID.randomUUID();
             UpdateExceptionRequest request = new UpdateExceptionRequest("REVOKED", null, null);
 
-            when(exceptionRepository.findById(unknownId)).thenReturn(Optional.empty());
+            when(policyExceptionRepository.findById(unknownId)).thenReturn(Optional.empty());
 
             String requestBody = objectMapper.writeValueAsString(request);
             mockMvc.perform(put("/api/v1/exceptions/{id}", unknownId)
@@ -265,18 +265,18 @@ class PolicyExceptionControllerTest {
     class DeleteException {
         @Test
         void shouldDeleteException() throws Exception {
-            when(exceptionRepository.existsById(exceptionId)).thenReturn(true);
+            when(policyExceptionRepository.existsById(exceptionId)).thenReturn(true);
 
             mockMvc.perform(delete("/api/v1/exceptions/{id}", exceptionId))
                     .andExpect(status().isNoContent());
 
-            verify(exceptionRepository).deleteById(exceptionId);
+            verify(policyExceptionRepository).deleteById(exceptionId);
         }
 
         @Test
         void shouldReturn404WhenExceptionNotFound() throws Exception {
             UUID unknownId = UUID.randomUUID();
-            when(exceptionRepository.existsById(unknownId)).thenReturn(false);
+            when(policyExceptionRepository.existsById(unknownId)).thenReturn(false);
 
             mockMvc.perform(delete("/api/v1/exceptions/{id}", unknownId))
                     .andExpect(status().isNotFound());
@@ -288,7 +288,7 @@ class PolicyExceptionControllerTest {
         @Test
         void shouldReturnActiveExceptionsForProject() throws Exception {
             when(projectRepository.existsById(projectId)).thenReturn(true);
-            when(exceptionRepository.findByProjectIdAndStatusAndExpiresAtAfter(projectId, "ACTIVE", any(Instant.class)))
+            when(policyExceptionRepository.findByProjectIdAndStatusAndExpiresAtAfter(projectId, "ACTIVE", any(Instant.class)))
                     .thenReturn(List.of(exceptionEntity));
 
             mockMvc.perform(get("/api/v1/exceptions/project/{projectId}", projectId))
@@ -296,13 +296,13 @@ class PolicyExceptionControllerTest {
                     .andExpect(jsonPath("$", hasSize(1)))
                     .andExpect(jsonPath("$[0].status", is("ACTIVE")));
 
-            verify(exceptionRepository).findByProjectIdAndStatusAndExpiresAtAfter(projectId, "ACTIVE", any(Instant.class));
+            verify(policyExceptionRepository).findByProjectIdAndStatusAndExpiresAtAfter(projectId, "ACTIVE", any(Instant.class));
         }
 
         @Test
         void shouldIncludeExpiredExceptions() throws Exception {
             when(projectRepository.existsById(projectId)).thenReturn(true);
-            when(exceptionRepository.findByProjectIdAndStatus(projectId, "ACTIVE"))
+            when(policyExceptionRepository.findByProjectIdAndStatus(projectId, "ACTIVE"))
                     .thenReturn(List.of(exceptionEntity));
 
             mockMvc.perform(get("/api/v1/exceptions/project/{projectId}", projectId)
@@ -310,7 +310,7 @@ class PolicyExceptionControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(1)));
 
-            verify(exceptionRepository).findByProjectIdAndStatus(projectId, "ACTIVE");
+            verify(policyExceptionRepository).findByProjectIdAndStatus(projectId, "ACTIVE");
         }
 
         @Test

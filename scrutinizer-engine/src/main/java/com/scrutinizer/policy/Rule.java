@@ -27,14 +27,20 @@ public final class Rule {
     private final String value;
     private final Severity severity;
     private final Target target;
+    private final String ecosystem;
 
     public Rule(String id, String description, String field,
                 Operator operator, String value, Severity severity) {
-        this(id, description, field, operator, value, severity, Target.ALL);
+        this(id, description, field, operator, value, severity, Target.ALL, null);
     }
 
     public Rule(String id, String description, String field,
                 Operator operator, String value, Severity severity, Target target) {
+        this(id, description, field, operator, value, severity, target, null);
+    }
+
+    public Rule(String id, String description, String field,
+                Operator operator, String value, Severity severity, Target target, String ecosystem) {
         this.id = Objects.requireNonNull(id);
         this.description = description != null ? description : "";
         this.field = Objects.requireNonNull(field);
@@ -42,6 +48,7 @@ public final class Rule {
         this.value = value;
         this.severity = Objects.requireNonNull(severity);
         this.target = target != null ? target : Target.ALL;
+        this.ecosystem = ecosystem;
     }
 
     public String id() { return id; }
@@ -51,6 +58,7 @@ public final class Rule {
     public String value() { return value; }
     public Severity severity() { return severity; }
     public Target target() { return target; }
+    public String ecosystem() { return ecosystem; }
 
     @Override
     public String toString() {

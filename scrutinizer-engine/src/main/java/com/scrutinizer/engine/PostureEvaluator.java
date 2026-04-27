@@ -2,6 +2,7 @@ package com.scrutinizer.engine;
 
 import com.scrutinizer.enrichment.EnrichedComponent;
 import com.scrutinizer.enrichment.EnrichedDependencyGraph;
+import com.scrutinizer.enrichment.PurlResolver;
 import com.scrutinizer.model.DependencyEdge;
 import com.scrutinizer.policy.PolicyDefinition;
 import com.scrutinizer.policy.Rule;
@@ -45,6 +46,17 @@ public class PostureEvaluator {
                     componentResults.add(new RuleResult(ref, rule.id(), RuleResult.Decision.PASS,
                             "(skipped-target)", rule.value(), rule.description()));
                     continue;
+                }
+
+                if (rule.ecosystem() != null) {
+                    Optional<String> compEcosystem = ec.component().purl()
+                            .flatMap(PurlResolver::extractEcosystem);
+                    if (compEcosystem.isEmpty()
+                            || !compEcosystem.get().equalsIgnoreCase(rule.ecosystem())) {
+                        componentResults.add(new RuleResult(ref, rule.id(), RuleResult.Decision.PASS,
+                                "(skipped-ecosystem)", rule.value(), rule.description()));
+                        continue;
+                    }
                 }
 
                 RuleResult result = ruleEvaluator.evaluate(rule, ec);

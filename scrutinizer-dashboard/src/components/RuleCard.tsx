@@ -22,7 +22,16 @@ export interface Rule {
   value: string
   severity: 'FAIL' | 'WARN' | 'INFO' | 'SKIP'
   target: 'ALL' | 'DIRECT' | 'TRANSITIVE'
+  ecosystem?: string
 }
+
+export const ECOSYSTEM_OPTIONS = [
+  { value: '', label: 'All Ecosystems' },
+  { value: 'npm', label: 'npm' },
+  { value: 'maven', label: 'Maven' },
+  { value: 'pypi', label: 'PyPI' },
+  { value: 'golang', label: 'Go' },
+]
 
 interface RuleCardProps {
   rule: Rule
@@ -103,6 +112,10 @@ export default function RuleCard({ rule, onChange, onDelete }: RuleCardProps) {
 
   const handleTargetChange = (value: string) => {
     onChange({ ...rule, target: value as Rule['target'] })
+  }
+
+  const handleEcosystemChange = (value: string) => {
+    onChange({ ...rule, ecosystem: value || undefined })
   }
 
   const handleIdChange = (value: string) => {
@@ -280,6 +293,32 @@ export default function RuleCard({ rule, onChange, onDelete }: RuleCardProps) {
               </Select>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                 {TARGET_DESCRIPTIONS[rule.target]}
+              </Typography>
+            </Box>
+
+            <Box sx={{ flex: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Ecosystem
+                </Typography>
+                <Tooltip title="Restrict this rule to a specific package ecosystem. Leave as 'All' to apply universally.">
+                  <InfoIcon sx={{ fontSize: '1rem', ml: 0.5, color: 'text.secondary' }} />
+                </Tooltip>
+              </Box>
+              <Select
+                value={rule.ecosystem || ''}
+                onChange={(e) => handleEcosystemChange(e.target.value)}
+                fullWidth
+                size="small"
+              >
+                {ECOSYSTEM_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                {rule.ecosystem ? `Only applies to ${rule.ecosystem} packages` : 'Applies to all packages'}
               </Typography>
             </Box>
 

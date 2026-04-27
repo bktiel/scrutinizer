@@ -15,21 +15,23 @@ describe('DashboardPage', () => {
   it('renders the page heading', async () => {
     renderWithRouter()
     await waitFor(() => {
-      expect(screen.getByText(/posture runs/i)).toBeInTheDocument()
+      // Heading is "Posture Evaluation Runs"
+      expect(screen.getByRole('heading', { name: /posture/i })).toBeInTheDocument()
     })
   })
 
   it('loads and displays run summaries', async () => {
     renderWithRouter()
     await waitFor(() => {
-      expect(screen.getByText('test-app')).toBeInTheDocument()
+      // Three fixture runs all share applicationName='test-app'; assert at least one renders.
+      expect(screen.getAllByText('test-app').length).toBeGreaterThan(0)
     })
   })
 
   it('displays policy names', async () => {
     renderWithRouter()
     await waitFor(() => {
-      expect(screen.getByText('npm-baseline')).toBeInTheDocument()
+      expect(screen.getAllByText('npm-baseline').length).toBeGreaterThan(0)
     })
   })
 })

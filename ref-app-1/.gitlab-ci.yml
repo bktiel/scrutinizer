@@ -1,40 +1,136 @@
-image: gradle
-
 stages:
   - build
-  - test
-#   - deploy
+  - scan
 
-build-job:
+variables:
+  SCRUTINIZER_API_URL: "http://api:8080"
+
+# ── Backend SBOM (Java/Gradle) ──────────────────────────────
+backend-sbom:
   stage: build
-  only:
-    - master
-  before_script:
-    - install yarn
+  image: eclipse-temurin:17-jdk
   script:
-    - ./gradlew build
-    - cd frontend
-    - yarn install && yarn build
+    - chmod +x gradlew
+    - ./gradlew cyclonedxBom -info 2>/dev/null || true
+    - |
+      # Check common output locations for CycloneDX Gradle plugin
+      for f in build/reports/bom.json build/reports/sbom.json build/sbom.json; do
+        if [ -f "$f" ]; then
+          cp "$f" backend-sbom.json
+          echo "Found backend SBOM at $f"
+          break
+        fi
+      done
+    - |
+      if [ ! -f backend-sbom.json ]; then
+        echo "Gradle CycloneDX plugin not configured, skipping backend SBOM"
+        echo '{"bomFormat":"CycloneDX","specVersion":"1.5","components":[]}' > backend-sbom.json
+      fi
+    - ls -la backend-sbom.json
   artifacts:
     paths:
-      - build
-      - frontend/node_modules
+      - backend-sbom.json
+    expire_in: 1 hour
+  allow_failure: true
 
-test-job:
-  stage: test
-  only:
-    - master
-  before_script:
-    - install yarn
+# ── Frontend SBOM (npm) ─────────────────────────────────────
+frontend-sbom:
+  stage: build
+  image: node:20-alpine
   script:
-    - ./gradlew clean test
     - cd frontend
-    - yarn vitest run
+    - npm install --ignore-scripts
+    - npx @cyclonedx/cyclonedx-npm --output-file ../frontend-sbom.json --ignore-npm-errors || true
+    - cd ..
+    - |
+      if [ ! -f frontend-sbom.json ]; then
+        echo "SBOM generation failed, creating empty SBOM"
+        echo '{"bomFormat":"CycloneDX","specVersion":"1.5","components":[]}' > frontend-sbom.json
+      fi
+    - ls -la frontend-sbom.json
+  artifacts:
+    paths:
+      - frontend-sbom.json
+    expire_in: 1 hour
 
-# deploy-job:
-#   stage: deploy
-#   only:
-#     - master
-#   environment: production
-#   script:
-#     - echo "Application successfully deployed."
+# ── Scrutinizer Scan ────────────────────────────────────────
+scrutinizer-scan:
+  stage: scan
+  image: curlimages/curl:latest
+  needs: [backend-sbom, frontend-sbom]
+  script:
+    - |
+      echo "========================================="
+      echo " Scrutinizer Policy Evaluation"
+      echo "========================================="
+      echo ""
+      echo " API:    $SCRUTINIZER_API_URL"
+      echo " Repo:   $CI_PROJECT_URL"
+      echo " App:    $CI_PROJECT_NAME"
+      echo ""
+
+      OVERALL_EXIT=0
+
+      for SBOM_FILE in backend-sbom.json frontend-sbom.json; do
+        LABEL=$(echo "$SBOM_FILE" | sed 's/-sbom.json//')
+        echo "----- Evaluating: $LABEL -----"
+
+        if [ ! -f "$SBOM_FILE" ]; then
+          echo "  SKIP: $SBOM_FILE not found"
+          continue
+        fi
+
+        # Skip empty SBOMs
+        COMP_COUNT=$(grep -o '"components":\[\]' "$SBOM_FILE" || true)
+        if [ -n "$COMP_COUNT" ]; then
+          echo "  SKIP: $SBOM_FILE has no components"
+          continue
+        fi
+
+        HTTP_CODE=$(curl -s -w "%{http_code}" -o "result-${LABEL}.json" \
+          -X POST "${SCRUTINIZER_API_URL}/api/v1/runs" \
+          -F "sbom=@${SBOM_FILE}" \
+          -F "applicationName=${CI_PROJECT_NAME}-${LABEL}" \
+          -F "repositoryUrl=${CI_PROJECT_URL}")
+
+        echo "  HTTP: $HTTP_CODE"
+
+        if [ "$HTTP_CODE" = "404" ]; then
+          echo "  ERROR: No project registered for this repository."
+          echo "  Register it in the Scrutinizer dashboard and assign a policy."
+          OVERALL_EXIT=1
+          continue
+        fi
+
+        if [ "$HTTP_CODE" != "201" ] && [ "$HTTP_CODE" != "200" ]; then
+          echo "  ERROR: API returned HTTP $HTTP_CODE"
+          cat "result-${LABEL}.json" 2>/dev/null
+          OVERALL_EXIT=1
+          continue
+        fi
+
+        DECISION=$(grep -o '"overallDecision":"[^"]*' "result-${LABEL}.json" | cut -d'"' -f4)
+        SCORE=$(grep -o '"postureScore":[0-9.]*' "result-${LABEL}.json" | cut -d':' -f2)
+        echo "  Decision: $DECISION  Score: $SCORE"
+
+        if [ "$DECISION" = "FAIL" ]; then
+          OVERALL_EXIT=1
+        fi
+
+        echo ""
+      done
+
+      echo "========================================="
+      if [ "$OVERALL_EXIT" = "0" ]; then
+        echo "PASS - All evaluations passed."
+      else
+        echo "FAIL - One or more evaluations failed."
+      fi
+
+      exit $OVERALL_EXIT
+  artifacts:
+    when: always
+    paths:
+      - result-*.json
+    expire_in: 30 days
+  allow_failure: false

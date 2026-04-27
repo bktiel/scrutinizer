@@ -1,6 +1,7 @@
 import { Card, CardContent, Stack, TextField, Select, MenuItem, IconButton, Box, Typography, Chip } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import type { Rule } from '../RuleCard'
+import { ECOSYSTEM_OPTIONS } from '../RuleCard'
 import { CatalogEntry, extractParamsFromRule } from '../../data/ruleCatalog'
 
 const SEVERITY_OPTIONS: { value: Rule['severity']; label: string; color: 'error' | 'warning' | 'info' | 'default' }[] = [
@@ -39,6 +40,10 @@ export default function CatalogRuleCard({ rule, catalogEntry, onChange, onDelete
 
   const handleTargetChange = (target: Rule['target']) => {
     onChange({ ...rule, target })
+  }
+
+  const handleEcosystemChange = (value: string) => {
+    onChange({ ...rule, ecosystem: value || undefined })
   }
 
   // Build the human-readable sentence with inline inputs
@@ -110,6 +115,19 @@ export default function CatalogRuleCard({ rule, catalogEntry, onChange, onDelete
             <Typography component="span" variant="body1" sx={{ color: 'text.secondary' }}>
               dependencies
             </Typography>
+            <Select
+              size="small"
+              value={rule.ecosystem || ''}
+              onChange={(e) => handleEcosystemChange(e.target.value)}
+              displayEmpty
+              sx={{ mx: 0.5, '& .MuiSelect-select': { py: 0.5, px: 1, fontSize: '0.85rem' } }}
+            >
+              {ECOSYSTEM_OPTIONS.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: '0.85rem' }}>
+                  {opt.value ? `(${opt.label} only)` : '(all ecosystems)'}
+                </MenuItem>
+              ))}
+            </Select>
           </Box>
 
           {/* Severity chips + delete */}

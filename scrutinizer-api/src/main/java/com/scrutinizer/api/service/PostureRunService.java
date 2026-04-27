@@ -107,6 +107,30 @@ public class PostureRunService {
         return executeWithUpload(project.getName(), sbomJson, project.getPolicyId(), projectId);
     }
 
+    @Transactional
+    public PostureRunEntity executeForRepositoryUrl(String repositoryUrl, String applicationName, String sbomJson) {
+        // Normalize URL: strip trailing "/" and ".git"
+        String normalized = repositoryUrl.replaceAll("(\\.git)?/*$", "");
+
+        ProjectEntity project = projectRepository.findByRepositoryUrl(normalized)
+                .or(() -> projectRepository.findByRepositoryUrl(normalized + ".git"))
+                .or(() -> projectRepository.findByRepositoryUrl(repositoryUrl))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No project registered for repository URL: " + repositoryUrl
+                        + ". Register it in the Scrutinizer dashboard first."));
+
+        if (project.getPolicyId() == null) {
+            throw new IllegalArgumentException(
+                    "Project '" + project.getName() + "' has no policy assigned. "
+                    + "Assign a policy in the Scrutinizer dashboard.");
+        }
+
+        String appName = (applicationName != null && !applicationName.isBlank())
+                ? applicationName : project.getName();
+
+        return executeWithUpload(appName, sbomJson, project.getPolicyId(), project.getId());
+    }
+
     private PostureRunEntity persistReport(String applicationName,
                                             PostureReport report,
                                             EnrichedDependencyGraph graph,

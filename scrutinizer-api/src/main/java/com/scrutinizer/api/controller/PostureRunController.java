@@ -21,8 +21,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,20 +52,41 @@ public class PostureRunController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Trigger a posture evaluation",
-               description = "Upload a CycloneDX SBOM JSON file and select a stored policy by ID. "
-                       + "The engine parses, enriches, evaluates, and persists the result. "
-                       + "Optionally provide a project ID to load project-scoped policy exceptions.")
+               description = "Upload a CycloneDX SBOM JSON file. Provide either a policyId to evaluate "
+                       + "against a specific policy, or a repositoryUrl to auto-resolve the project and "
+                       + "its assigned policy. Policy management is controlled from the dashboard.")
     @ApiResponse(responseCode = "201", description = "Evaluation completed and persisted")
-    @ApiResponse(responseCode = "400", description = "Invalid SBOM or policy ID")
+    @ApiResponse(responseCode = "400", description = "Invalid SBOM or missing parameters")
+    @ApiResponse(responseCode = "404", description = "No project registered for the given repository URL")
     public ResponseEntity<PostureRunSummaryDto> createRun(
             @Parameter(description = "CycloneDX SBOM JSON file") @RequestPart("sbom") MultipartFile sbomFile,
-            @Parameter(description = "Application name") @RequestParam String applicationName,
-            @Parameter(description = "Policy ID to evaluate against") @RequestParam UUID policyId,
-            @Parameter(description = "Optional project ID to associate run with a project and load project-scoped exceptions") @RequestParam(required = false) UUID projectId) {
+            @Parameter(description = "Application name") @RequestParam(required = false) String applicationName,
+            @Parameter(description = "Policy ID to evaluate against (provide this OR repositoryUrl)") @RequestParam(required = false) UUID policyId,
+            @Parameter(description = "Repository URL to resolve project and policy (provide this OR policyId)") @RequestParam(required = false) String repositoryUrl,
+            @Parameter(description = "Optional project ID for exception scoping") @RequestParam(required = false) UUID projectId) {
         try {
             String sbomJson = new String(sbomFile.getBytes(), StandardCharsets.UTF_8);
-            PostureRunEntity run = postureRunService.executeWithUpload(applicationName, sbomJson, policyId, projectId);
+            PostureRunEntity run;
+
+            if (repositoryUrl != null && !repositoryUrl.isBlank()) {
+                run = postureRunService.executeForRepositoryUrl(repositoryUrl, applicationName, sbomJson);
+            } else if (policyId != null) {
+                String appName = (applicationName != null && !applicationName.isBlank())
+                        ? applicationName : "unnamed";
+                run = postureRunService.executeWithUpload(appName, sbomJson, policyId, projectId);
+            } else {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Provide either 'policyId' or 'repositoryUrl'");
+            }
+
             return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toSummaryDto(run));
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage() != null && e.getMessage().contains("No project registered")) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+            }
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
@@ -144,6 +169,99 @@ public class PostureRunController {
         postureRunRepository.save(entity);
 
         return mapper.toDetailDto(entity);
+    }
+
+    @GetMapping(value = "/{id}/export", produces = "application/zip")
+    @Operation(summary = "Export audit bundle",
+               description = "Download a ZIP containing posture-report.json, findings.csv, and evidence-manifest.json for compliance auditing.")
+    @ApiResponse(responseCode = "200", description = "Audit bundle ZIP")
+    @ApiResponse(responseCode = "404", description = "Run not found")
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> exportAuditBundle(@PathVariable UUID id) {
+        PostureRunEntity entity = postureRunRepository.findByIdWithComponents(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Run not found"));
+
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper json = new com.fasterxml.jackson.databind.ObjectMapper();
+            json.enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT);
+            json.findAndRegisterModules();
+
+            // Build posture-report.json from entity directly
+            var reportMap = new java.util.LinkedHashMap<String, Object>();
+            reportMap.put("id", entity.getId().toString());
+            reportMap.put("applicationName", entity.getApplicationName());
+            reportMap.put("policyName", entity.getPolicyName());
+            reportMap.put("policyVersion", entity.getPolicyVersion());
+            reportMap.put("overallDecision", entity.getOverallDecision());
+            reportMap.put("postureScore", entity.getPostureScore());
+            reportMap.put("runTimestamp", entity.getRunTimestamp().toString());
+            reportMap.put("componentCount", entity.getComponentResults().size());
+            String reportJson = json.writeValueAsString(reportMap);
+
+            // Build findings.csv
+            StringBuilder csv = new StringBuilder();
+            csv.append("ruleId,componentName,componentRef,decision,severity,field,actualValue,expectedValue,description,remediation\n");
+            for (var cr : entity.getComponentResults()) {
+                for (var f : cr.getFindings()) {
+                    csv.append(escapeCsv(f.getRuleId())).append(',');
+                    csv.append(escapeCsv(cr.getComponentName())).append(',');
+                    csv.append(escapeCsv(cr.getComponentRef())).append(',');
+                    csv.append(escapeCsv(f.getDecision())).append(',');
+                    csv.append(escapeCsv(f.getSeverity())).append(',');
+                    csv.append(escapeCsv(f.getField())).append(',');
+                    csv.append(escapeCsv(f.getActualValue())).append(',');
+                    csv.append(escapeCsv(f.getExpectedValue())).append(',');
+                    csv.append(escapeCsv(f.getDescription())).append(',');
+                    csv.append(escapeCsv(f.getRemediation())).append('\n');
+                }
+            }
+
+            // Build evidence-manifest.json
+            var manifest = new java.util.LinkedHashMap<String, Object>();
+            manifest.put("schemaVersion", "1.0");
+            manifest.put("generatedAt", DateTimeFormatter.ISO_INSTANT.format(Instant.now()));
+            manifest.put("runId", id.toString());
+            manifest.put("applicationName", entity.getApplicationName());
+            manifest.put("policyName", entity.getPolicyName());
+            manifest.put("overallDecision", entity.getOverallDecision());
+            String manifestJson = json.writeValueAsString(manifest);
+
+            // Build ZIP
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+                zos.putNextEntry(new ZipEntry("posture-report.json"));
+                zos.write(reportJson.getBytes(StandardCharsets.UTF_8));
+                zos.closeEntry();
+
+                zos.putNextEntry(new ZipEntry("findings.csv"));
+                zos.write(csv.toString().getBytes(StandardCharsets.UTF_8));
+                zos.closeEntry();
+
+                zos.putNextEntry(new ZipEntry("evidence-manifest.json"));
+                zos.write(manifestJson.getBytes(StandardCharsets.UTF_8));
+                zos.closeEntry();
+            }
+
+            String filename = "scrutinizer-audit-" + entity.getApplicationName() + "-"
+                    + entity.getRunTimestamp().toString().substring(0, 10) + ".zip";
+
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                    .header("Content-Type", "application/zip")
+                    .body(baos.toByteArray());
+
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to generate audit bundle: " + e.getMessage());
+        }
+    }
+
+    private String escapeCsv(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 
     @GetMapping("/trends")

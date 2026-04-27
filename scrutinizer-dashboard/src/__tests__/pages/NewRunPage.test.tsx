@@ -15,14 +15,16 @@ describe('NewRunPage', () => {
   it('renders the new run form', async () => {
     renderWithRouter()
     await waitFor(() => {
-      expect(screen.getByText(/new.*run|evaluate|submit/i)).toBeInTheDocument()
+      // Page heading: "New Posture Evaluation"
+      expect(screen.getByRole('heading', { name: /new.*evaluation|new.*run/i })).toBeInTheDocument()
     })
   })
 
   it('loads policies for selection', async () => {
     renderWithRouter()
     await waitFor(() => {
-      expect(screen.getByText(/policy/i)).toBeInTheDocument()
+      // The word 'policy' appears in the InputLabel and helper text; multiple matches OK.
+      expect(screen.getAllByText(/policy/i).length).toBeGreaterThan(0)
     })
   })
 

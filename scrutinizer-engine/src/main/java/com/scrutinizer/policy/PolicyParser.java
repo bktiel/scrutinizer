@@ -126,7 +126,9 @@ public class PolicyParser {
             }
         }
 
-        return new Rule(id, description, field, operator, value, severity, target);
+        String ecosystem = (String) raw.get("ecosystem");
+
+        return new Rule(id, description, field, operator, value, severity, target, ecosystem);
     }
 
     @SuppressWarnings("unchecked")

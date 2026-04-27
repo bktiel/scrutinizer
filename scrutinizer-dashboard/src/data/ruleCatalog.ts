@@ -3,7 +3,7 @@ import type { Rule } from '../components/RuleCard'
 export interface CatalogParam {
   key: string
   label: string
-  type: 'number' | 'text' | 'text-list'
+  type: 'number' | 'text' | 'text-list' | 'ecosystem'
   defaultValue: string
   placeholder?: string
   helperText?: string

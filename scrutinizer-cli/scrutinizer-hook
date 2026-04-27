@@ -122,31 +122,37 @@ fi
 
 log_info "Sending SBOM to policy engine..."
 
-# Build the API request
-REQUEST_JSON=$(cat <<EOF
-{
-  "sbom": $(cat "${SCRUTINIZER_SBOM_PATH}"),
-  "policyId": "${SCRUTINIZER_POLICY_ID}",
-  "projectId": "${SCRUTINIZER_PROJECT_ID:-}",
-  "appName": "${APP_NAME}"
-}
-EOF
-)
+# Resolve repository URL from git remote (for URL-based project lookup)
+REPO_URL=$(git remote get-url origin 2>/dev/null || echo "")
 
-# Call the API with curl, capturing both response and HTTP code
+# Build the API request as multipart form data
 RESPONSE=$(mktemp)
-HTTP_CODE=$(curl \
-    -s \
-    -w "%{http_code}" \
-    -X POST \
-    -H "Content-Type: application/json" \
-    -d "${REQUEST_JSON}" \
-    "${SCRUTINIZER_API_URL}/api/v1/runs" \
-    -o "${RESPONSE}" \
-    2>/dev/null)
+CURL_ARGS=(-s -w "%{http_code}" -X POST -o "${RESPONSE}")
+CURL_ARGS+=(-F "sbom=@${SCRUTINIZER_SBOM_PATH}")
+CURL_ARGS+=(-F "applicationName=${APP_NAME}")
+
+# Prefer repositoryUrl (auto-resolves project + policy from dashboard)
+# Fall back to policyId if no git remote is configured
+if [[ -n "$REPO_URL" ]]; then
+    CURL_ARGS+=(-F "repositoryUrl=${REPO_URL}")
+    log_info "Using repository URL: ${REPO_URL}"
+elif [[ -n "${SCRUTINIZER_POLICY_ID:-}" ]]; then
+    CURL_ARGS+=(-F "policyId=${SCRUTINIZER_POLICY_ID}")
+    log_info "Using policy ID: ${SCRUTINIZER_POLICY_ID}"
+else
+    log_error "No git remote configured and no SCRUTINIZER_POLICY_ID set"
+    log_warn "Proceeding with commit (cannot evaluate policy)"
+    exit 0
+fi
+
+if [[ -n "${SCRUTINIZER_PROJECT_ID:-}" ]]; then
+    CURL_ARGS+=(-F "projectId=${SCRUTINIZER_PROJECT_ID}")
+fi
+
+HTTP_CODE=$(curl "${CURL_ARGS[@]}" "${SCRUTINIZER_API_URL}/api/v1/runs" 2>/dev/null)
 
 # Handle connection errors
-if [[ -z "$HTTP_CODE" ]]; then
+if [[ -z "$HTTP_CODE" || "$HTTP_CODE" == "000" ]]; then
     log_error "Failed to connect to Scrutinizer API at ${SCRUTINIZER_API_URL}"
     log_warn "Proceeding with commit (API unreachable)"
     rm -f "${RESPONSE}"
@@ -154,10 +160,14 @@ if [[ -z "$HTTP_CODE" ]]; then
 fi
 
 # Parse the response
-if [[ "$HTTP_CODE" != "200" ]]; then
+if [[ "$HTTP_CODE" != "201" && "$HTTP_CODE" != "200" ]]; then
     log_error "API returned HTTP ${HTTP_CODE}"
     if [[ -s "${RESPONSE}" ]]; then
         log_info "Response: $(cat "${RESPONSE}" | head -1)"
+    fi
+    if [[ "$HTTP_CODE" == "404" ]]; then
+        log_warn "No project registered for this repository in Scrutinizer"
+        log_info "Register it in the dashboard and assign a policy"
     fi
     log_warn "Proceeding with commit (API error)"
     rm -f "${RESPONSE}"

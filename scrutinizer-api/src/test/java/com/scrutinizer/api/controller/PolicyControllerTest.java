@@ -96,7 +96,7 @@ class PolicyControllerTest {
             MockMultipartFile yamlFile = new MockMultipartFile(
                     "file", "policy.yaml", MediaType.TEXT_PLAIN_VALUE, yamlContent.getBytes());
 
-            PolicyDefinition parsed = new PolicyDefinition("test-policy", "1.0");
+            PolicyDefinition parsed = new PolicyDefinition("scrutinizer/v1", "test-policy", "1.0", List.of(), null);
             when(policyParser.parse(any())).thenReturn(parsed);
             when(policyRepository.findByName("test-policy")).thenReturn(Optional.of(policyEntity));
 
@@ -129,7 +129,7 @@ class PolicyControllerTest {
             MockMultipartFile yamlFile = new MockMultipartFile(
                     "file", "policy.yaml", MediaType.TEXT_PLAIN_VALUE, newYaml.getBytes());
 
-            PolicyDefinition parsed = new PolicyDefinition("test-policy", "2.0");
+            PolicyDefinition parsed = new PolicyDefinition("scrutinizer/v1", "test-policy", "2.0", List.of(), null);
             when(policyRepository.findById(policyId)).thenReturn(Optional.of(policyEntity));
             when(policyParser.parse(any())).thenReturn(parsed);
             when(policyRepository.save(any(PolicyEntity.class))).thenReturn(policyEntity);

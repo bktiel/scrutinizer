@@ -13,5 +13,7 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
 
     Optional<ProjectEntity> findByName(String name);
 
+    Optional<ProjectEntity> findByRepositoryUrl(String repositoryUrl);
+
     List<ProjectEntity> findAllByOrderByNameAsc();
 }

@@ -1,5 +1,14 @@
 const BASE = '/api/v1'
 
+/** Unwrap a response that may be a Spring Page object or a plain array */
+function unwrapPage<T>(data: unknown): T[] {
+  if (Array.isArray(data)) return data
+  if (data && typeof data === 'object' && 'content' in data && Array.isArray((data as any).content)) {
+    return (data as any).content
+  }
+  return []
+}
+
 async function get<T>(path: string, params?: Record<string, string | number>): Promise<T> {
   const url = new URL(path, window.location.origin)
   url.pathname = BASE + url.pathname
@@ -234,7 +243,8 @@ export interface PolicyException {
 }
 
 export async function listProjects(): Promise<Project[]> {
-  return get('/projects')
+  const resp = await get<unknown>('/projects')
+  return unwrapPage<Project>(resp)
 }
 
 export async function getProject(id: string): Promise<Project> {
@@ -288,14 +298,16 @@ export async function getProjectTrends(id: string): Promise<TrendDataPoint[]> {
 }
 
 export async function getProjectExceptions(projectId: string): Promise<PolicyException[]> {
-  return get(`/projects/${projectId}/exceptions`)
+  const resp = await get<unknown>(`/projects/${projectId}/exceptions`)
+  return unwrapPage<PolicyException>(resp)
 }
 
 export async function listExceptions(projectId?: string, status?: string): Promise<PolicyException[]> {
   const params: Record<string, string> = {}
   if (projectId) params.projectId = projectId
   if (status) params.status = status
-  return get('/exceptions', params)
+  const resp = await get<unknown>('/exceptions', params)
+  return unwrapPage<PolicyException>(resp)
 }
 
 export async function createException(data: { projectId: string; policyId?: string; ruleId?: string; packageName?: string; packageVersion?: string; justification: string; scope?: string; expiresAt?: string }): Promise<PolicyException> {

@@ -50,7 +50,20 @@ public class RuleEvaluator {
         }
 
         String actual = actualOpt.get();
-        boolean passes = compareValues(actual, rule.value(), rule.operator());
+        boolean matches = compareValues(actual, rule.value(), rule.operator());
+
+        // Ban-style rules: field=name with EQ/IN operators define a blocklist.
+        // A match means the component IS the banned package → FAIL.
+        // A non-match means the component is fine → PASS.
+        boolean isBanRule = "name".equals(rule.field())
+                && (rule.operator() == Rule.Operator.EQ || rule.operator() == Rule.Operator.IN);
+
+        boolean passes;
+        if (isBanRule) {
+            passes = !matches;  // match = violation, non-match = pass
+        } else {
+            passes = matches;   // standard: match = pass, non-match = violation
+        }
 
         RuleResult.Decision decision = passes
                 ? RuleResult.Decision.PASS

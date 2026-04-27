@@ -24,8 +24,8 @@ describe('ApplicationTrendPage', () => {
   it('loads trend data', async () => {
     renderWithRouter()
     await waitFor(() => {
-      // Should show some trend-related content
-      expect(screen.getByText(/trend|score|posture/i)).toBeInTheDocument()
+      // Heading "Posture Trend: test-app" is the page title; multiple matches OK.
+      expect(screen.getAllByText(/trend|score|posture/i).length).toBeGreaterThan(0)
     })
   })
 })

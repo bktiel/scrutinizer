@@ -29,7 +29,8 @@ describe('PoliciesPage', () => {
   it('displays Create Policy button', async () => {
     renderWithRouter()
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: /create policy/i })).toBeInTheDocument()
+      // Implemented as a Button with onClick={navigate}, not an <a> link.
+      expect(screen.getByRole('button', { name: /create policy/i })).toBeInTheDocument()
     })
   })
 })

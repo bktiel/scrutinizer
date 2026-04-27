@@ -4,17 +4,16 @@ stages:
 
 variables:
   SCRUTINIZER_API_URL: "http://api:8080"
-  SCRUTINIZER_APP_NAME: "ref-app-2"
 
 install:
   stage: build
   image: node:20-alpine
   script:
-    - npm ci --ignore-scripts
+    - npm install --ignore-scripts
     - npx @cyclonedx/cyclonedx-npm --output-file sbom.json --ignore-npm-errors || true
     - |
       if [ ! -f sbom.json ]; then
-        echo "cdxgen fallback: copying pre-generated SBOM"
+        echo "SBOM generation failed, copying pre-generated SBOM"
         cp /scrutinizer-sboms/ref-app-2.cdx.json sbom.json || true
       fi
     - ls -la sbom.json
@@ -27,25 +26,16 @@ scrutinizer-scan:
   stage: scan
   image: curlimages/curl:latest
   needs: [install]
-  variables:
-    # Set SCRUTINIZER_POLICY_ID as a CI/CD variable in GitLab project settings
-    SCRUTINIZER_POLICY_ID: "${SCRUTINIZER_POLICY_ID}"
   script:
     - |
       echo "========================================="
       echo " Scrutinizer Policy Evaluation"
       echo "========================================="
       echo ""
-      echo " API:       $SCRUTINIZER_API_URL"
-      echo " Policy:    $SCRUTINIZER_POLICY_ID"
-      echo " App:       $SCRUTINIZER_APP_NAME"
+      echo " API:    $SCRUTINIZER_API_URL"
+      echo " Repo:   $CI_PROJECT_URL"
+      echo " App:    $CI_PROJECT_NAME"
       echo ""
-
-      if [ -z "$SCRUTINIZER_POLICY_ID" ]; then
-        echo "ERROR: SCRUTINIZER_POLICY_ID not set."
-        echo "Add it as a CI/CD variable in GitLab project settings."
-        exit 1
-      fi
 
       if [ ! -f sbom.json ]; then
         echo "ERROR: sbom.json not found. Build stage may have failed."
@@ -54,12 +44,12 @@ scrutinizer-scan:
 
       START_TIME=$(date +%s)
 
-      # Submit SBOM to Scrutinizer API (multipart form)
+      # Submit SBOM — Scrutinizer resolves policy from repository URL
       HTTP_CODE=$(curl -s -w "%{http_code}" -o result.json \
         -X POST "${SCRUTINIZER_API_URL}/api/v1/runs" \
         -F "sbom=@sbom.json" \
-        -F "applicationName=${SCRUTINIZER_APP_NAME}" \
-        -F "policyId=${SCRUTINIZER_POLICY_ID}")
+        -F "applicationName=${CI_PROJECT_NAME}" \
+        -F "repositoryUrl=${CI_PROJECT_URL}")
 
       END_TIME=$(date +%s)
       ELAPSED=$((END_TIME - START_TIME))
@@ -68,13 +58,20 @@ scrutinizer-scan:
       echo "Eval Time:      ${ELAPSED}s"
       echo ""
 
+      if [ "$HTTP_CODE" = "404" ]; then
+        echo "ERROR: No project registered for this repository."
+        echo "Register it in the Scrutinizer dashboard and assign a policy."
+        cat result.json 2>/dev/null
+        exit 1
+      fi
+
       if [ "$HTTP_CODE" != "201" ] && [ "$HTTP_CODE" != "200" ]; then
         echo "ERROR: API returned HTTP $HTTP_CODE"
         cat result.json 2>/dev/null
         exit 1
       fi
 
-      # Parse results (jq not available in curl image, use grep)
+      # Parse results
       DECISION=$(grep -o '"overallDecision":"[^"]*' result.json | cut -d'"' -f4)
       SCORE=$(grep -o '"postureScore":[0-9.]*' result.json | cut -d':' -f2)
       RUN_ID=$(grep -o '"id":"[^"]*' result.json | head -1 | cut -d'"' -f4)
@@ -88,7 +85,6 @@ scrutinizer-scan:
       echo " Run ID:    $RUN_ID"
       echo ""
 
-      # Save report
       cat result.json > posture-report.json
 
       case "$DECISION" in
@@ -102,9 +98,7 @@ scrutinizer-scan:
           ;;
         FAIL)
           echo "FAIL - Policy violations detected."
-          echo ""
-          echo "Review findings in the Scrutinizer dashboard:"
-          echo "  ${SCRUTINIZER_API_URL/api:8080/dashboard:3000}/runs/$RUN_ID"
+          echo "Review findings in the Scrutinizer dashboard."
           exit 1
           ;;
         *)

@@ -29,7 +29,8 @@ describe('ExceptionsPage', () => {
   it('displays exception status', async () => {
     renderWithRouter()
     await waitFor(() => {
-      expect(screen.getByText('ACTIVE')).toBeInTheDocument()
+      // 'ACTIVE' appears in the filter chip and on each row; assert at least one is shown.
+      expect(screen.getAllByText('ACTIVE').length).toBeGreaterThan(0)
     })
   })
 

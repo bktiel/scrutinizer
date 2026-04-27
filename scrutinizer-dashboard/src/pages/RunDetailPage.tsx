@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Typography, Box, Tabs, Tab, Paper, Grid, Button } from '@mui/material'
+import { Typography, Box, Tabs, Tab, Paper, Grid, Button, Tooltip } from '@mui/material'
+import DownloadIcon from '@mui/icons-material/Download'
 import SignalBadge from '../components/SignalBadge'
 import DependencyTable from '../components/DependencyTable'
 import { getRunDetail, PostureRunDetail } from '../api/scrutinizerApi'
@@ -23,9 +24,24 @@ export default function RunDetailPage() {
 
   return (
     <Box>
-      <Button onClick={() => navigate('/')} sx={{ mb: 2 }}>
-        &larr; Back to Dashboard
-      </Button>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Button onClick={() => navigate('/')}>&larr; Back to Dashboard</Button>
+        <Tooltip title="Download audit bundle (posture report, findings CSV, evidence manifest)">
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<DownloadIcon />}
+            onClick={() => {
+              const link = document.createElement('a')
+              link.href = `/api/v1/runs/${id}/export`
+              link.download = ''
+              link.click()
+            }}
+          >
+            Export Audit Bundle
+          </Button>
+        </Tooltip>
+      </Box>
 
       <Typography variant="h4" gutterBottom>
         {run.applicationName}

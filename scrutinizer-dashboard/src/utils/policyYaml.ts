@@ -61,6 +61,9 @@ export function generatePolicyYaml(form: PolicyForm): string {
     }
     lines.push(`    severity: ${rule.severity}`)
     lines.push(`    target: ${rule.target}`)
+    if (rule.ecosystem) {
+      lines.push(`    ecosystem: ${rule.ecosystem}`)
+    }
   })
 
   lines.push('scoring:')
@@ -129,6 +132,7 @@ export function parseYamlToForm(yamlString: string): PolicyForm | null {
         if (key === 'value') currentRule.value = value
         if (key === 'severity') currentRule.severity = value as any
         if (key === 'target') currentRule.target = value as any
+        if (key === 'ecosystem') currentRule.ecosystem = value || undefined
       }
     }
 

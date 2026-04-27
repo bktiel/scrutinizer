@@ -27,6 +27,12 @@ export const handlers = [
     })
   }),
 
+  // /runs/trends MUST be registered before /runs/:id, otherwise "trends"
+  // is captured as the :id path param.
+  http.get(`${BASE}/runs/trends`, () => {
+    return HttpResponse.json(sampleTrendData)
+  }),
+
   http.get(`${BASE}/runs/:id`, ({ params }) => {
     if (params.id === 'not-found') {
       return new HttpResponse(null, { status: 404 })
@@ -42,10 +48,6 @@ export const handlers = [
       number: 0,
       size: 50,
     })
-  }),
-
-  http.get(`${BASE}/runs/trends`, () => {
-    return HttpResponse.json(sampleTrendData)
   }),
 
   http.post(`${BASE}/runs`, () => {
